@@ -67,14 +67,53 @@ Parse PR body for story reference using the PM adapter's "Story Reference in PRs
 
 Read `~/.claude/dev-workflow/config.json` for `deploy_command`.
 
-**If `deploy_command` is configured:**
-- Run the command and wait for completion
-- Verify deployment succeeded before testing
+`deploy_command` is a natural language instruction describing how to deploy the branch to the test/dev environment. Interpret it and take the appropriate action.
 
 **If `deploy_command` is not configured:**
 - Skip automated deployment
 - Test against the currently running environment
 - Note in test report that no deployment was performed
+
+**If `deploy_command` is configured**, interpret the instruction:
+
+### GitHub Actions
+
+Instructions like "Run the dev CI in Github Actions", "Trigger the deploy-dev workflow", "Run the CI pipeline":
+
+1. Identify the target workflow:
+   ```bash
+   gh workflow list
+   ```
+   Match the instruction to the most relevant workflow name or file.
+
+2. Trigger the workflow on the PR branch:
+   ```bash
+   gh workflow run <workflow-file-or-id> --ref $BRANCH
+   ```
+
+3. Get the run ID (allow a few seconds for the run to register):
+   ```bash
+   sleep 5
+   gh run list --workflow=<workflow> --branch=$BRANCH --limit=1 --json databaseId -q '.[0].databaseId'
+   ```
+
+4. Watch until completion:
+   ```bash
+   gh run watch <run-id>
+   ```
+
+5. Check the result:
+   ```bash
+   gh run view <run-id> --json conclusion -q .conclusion
+   ```
+   - `success` → deployment succeeded, proceed to testing
+   - Any other value → deployment failed, stop and report failure in test report
+
+### Other patterns
+
+- If the instruction describes a shell command (e.g., starts with `kubectl`, `docker`, `helm`, a script path, etc.), execute it directly and wait for it to exit successfully.
+- If the instruction is ambiguous, use best judgment based on the available tools in the repository (check for Makefiles, scripts, CI config files).
+- If you cannot determine how to fulfill the instruction, stop and ask the user.
 
 ---
 
