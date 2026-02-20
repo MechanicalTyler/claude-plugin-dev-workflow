@@ -19,12 +19,12 @@ jira issue view {KEY} --plain
 ```
 
 Parse from output:
-- **Title/Summary**: first line after the key
-- **Description**: body text
-- **Acceptance Criteria**: look in two places — a dedicated custom field (often labeled "Acceptance Criteria") and as a structured section within the description (e.g., a heading or bullet list). Surface whatever is found in either location.
-- **Issue type**: type field (Bug, Story, Task, etc.)
-- **Status**: current workflow state
-- **Comments**: comment thread at the bottom of output
+- **Summary**: value on the `Summary:` labeled line
+- **Description**: content under the `Description:` label
+- **Issue type**: value on the `Type:` labeled line
+- **Status**: value on the `Status:` labeled line
+- **Acceptance Criteria**: look in a dedicated `Acceptance Criteria:` custom field, or as a structured section (heading or bullet list) within the description
+- **Comments**: content under the `Comments:` section at the bottom
 
 ## Post Comment
 
@@ -34,13 +34,20 @@ jira issue comment add {KEY} --body "{text}"
 
 ## Update Story
 
+Standard fields use named flags:
 ```bash
-jira issue edit {KEY} --custom "field=value"
+jira issue edit {KEY} --priority High
+jira issue edit {KEY} --assignee username
+```
+
+Custom fields use `--custom`:
+```bash
+jira issue edit {KEY} --custom "story-points=5"
 ```
 
 For status transitions:
 ```bash
-jira issue move {KEY} "{status name}"
+jira issue move {KEY} "In Progress"
 ```
 
 ## Story Reference in PRs
