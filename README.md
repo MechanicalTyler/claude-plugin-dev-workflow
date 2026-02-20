@@ -30,7 +30,7 @@ Create `~/.claude/dev-workflow/config.json`:
       "story_id_prefix": "sc-"
     }
   },
-  "deploy_command": "kubectl rollout restart deployment/my-app -n my-namespace"
+  "deploy_command": "Run the dev CI workflow in GitHub Actions"
 }
 ```
 
