@@ -21,6 +21,7 @@ jira issue view {KEY} --plain
 Parse from output:
 - **Title/Summary**: first line after the key
 - **Description**: body text
+- **Acceptance Criteria**: look in two places — a dedicated custom field (often labeled "Acceptance Criteria") and as a structured section within the description (e.g., a heading or bullet list). Surface whatever is found in either location.
 - **Issue type**: type field (Bug, Story, Task, etc.)
 - **Status**: current workflow state
 - **Comments**: comment thread at the bottom of output
@@ -34,7 +35,7 @@ jira issue comment add {KEY} --body "{text}"
 ## Update Story
 
 ```bash
-jira issue edit {KEY} --custom field=value
+jira issue edit {KEY} --custom "field=value"
 ```
 
 For status transitions:
