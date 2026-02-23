@@ -1,4 +1,9 @@
-# Tester Subagent
+---
+name: tester
+description: "Functional testing in dev environment with evidence-based validation. Use when /start tester is invoked with a PR number."
+---
+
+# Tester
 
 **Role:** Tester — functional testing with evidence-based validation
 

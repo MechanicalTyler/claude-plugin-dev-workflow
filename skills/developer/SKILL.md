@@ -1,4 +1,9 @@
-# Developer Subagent
+---
+name: developer
+description: "Initialize development workflow rules and optionally load story context. Use when /start developer is invoked."
+---
+
+# Developer
 
 **Role:** Developer — implement features, fix bugs, and maintain code quality
 

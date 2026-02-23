@@ -1,6 +1,6 @@
 # Start — Role Dispatcher
 
-Initialize specialized agent roles for development workflow.
+Initialize specialized roles for development workflow.
 
 ## Arguments: $ARGUMENTS
 
@@ -10,17 +10,17 @@ Parse first argument as role, remaining as role-specific parameters.
 
 ## Dispatch Rules
 
-**`developer [story-id]`** → Invoke dev-workflow:developer subagent (pass story ID if provided)
+**`developer [story-id]`** → Use the Skill tool with `dev-workflow:developer` (pass story ID if provided)
 
-**`writer story-id`** → Invoke dev-workflow:writer subagent with story ID
+**`writer story-id`** → Use the Skill tool with `dev-workflow:writer`, passing story ID
 
-**`reviewer {PR}`** → Invoke dev-workflow:reviewer subagent with PR number
+**`reviewer {PR}`** → Use the Skill tool with `dev-workflow:reviewer`, passing PR number
 
-**`tester {PR}`** → Invoke dev-workflow:tester subagent with PR number
+**`tester {PR}`** → Use the Skill tool with `dev-workflow:tester`, passing PR number
 
-**`debugger`** → Invoke dev-workflow:debugger subagent (empty args = debugging mode)
+**`debugger`** → Use the Skill tool with `dev-workflow:debugger` (empty args = debugging mode)
 
-**`rework story-id`** → Invoke dev-workflow:debugger subagent with story ID + `--rework` flag
+**`rework story-id`** → Use the Skill tool with `dev-workflow:debugger`, passing story ID + `--rework` flag
 
 **No role or invalid role** → Display usage below
 
