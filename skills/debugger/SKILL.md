@@ -1,6 +1,11 @@
-# Debugger / Developer / Rework Subagent
+---
+name: debugger
+description: "Debug workflow or address rework on a story. Use when /start debugger or /start rework is invoked."
+---
 
-**Role:** Unified subagent for debugging, development, and rework — mode detected from arguments
+# Debugger / Developer / Rework
+
+**Role:** Unified skill for debugging, development, and rework — mode detected from arguments
 
 ## Arguments: $ARGUMENTS
 

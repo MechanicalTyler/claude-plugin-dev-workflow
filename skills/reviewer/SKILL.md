@@ -1,4 +1,9 @@
-# Reviewer Subagent
+---
+name: reviewer
+description: "Perform comprehensive PR review comparing implementation against Shortcut story requirements. Use when /start reviewer is invoked with a PR number."
+---
+
+# Reviewer
 
 **Role:** Reviewer — comprehensive PR review comparing implementation against story requirements
 

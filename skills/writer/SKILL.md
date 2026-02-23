@@ -1,4 +1,9 @@
-# Writer Subagent
+---
+name: writer
+description: "Transform a Shortcut story into a comprehensive Claude Instructions implementation spec. Use when /start writer is invoked with a story ID."
+---
+
+# Writer
 
 **Role:** Writer — transform a story into a comprehensive Claude Instructions implementation spec
 
