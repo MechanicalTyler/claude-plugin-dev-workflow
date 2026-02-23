@@ -1,6 +1,6 @@
 ---
 name: writer
-description: "Transform a Shortcut story into a comprehensive Claude Instructions implementation spec. Use when /start writer is invoked with a story ID."
+description: "Transform a story into a comprehensive Claude Instructions implementation spec. Use when /start writer is invoked with a story ID."
 ---
 
 # Writer
