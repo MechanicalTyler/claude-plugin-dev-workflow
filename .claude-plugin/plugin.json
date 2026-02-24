@@ -1,7 +1,7 @@
 {
   "name": "dev-workflow",
+  "version": "1.4.0",
   "description": "Role-based development workflow subagents with pluggable PM and notes adapters",
-  "version": "1.2.0",
   "author": {
     "name": "MechanicalTyler"
   },
