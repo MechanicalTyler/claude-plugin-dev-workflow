@@ -57,9 +57,9 @@ Parse PR body for story reference using the PM adapter's "Story Reference in PRs
 
 **If story ID found:**
 1. Read `~/.claude/dev-workflow/config.json` for `pm_adapter` and `notes_adapter`
-2. Load PM adapter → fetch story by ID
+2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story by ID
 3. Detect service name: `git rev-parse --show-toplevel | xargs basename`
-4. Load notes adapter → read Claude Instructions spec
+4. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
 5. Use acceptance criteria and Manual Testing section as test scenarios
 
 **If story ID not found:**

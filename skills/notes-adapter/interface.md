@@ -23,5 +23,16 @@ Run this to determine the current service name. Use it as part of the spec path.
 ## How to use
 
 1. Read config to get `notes_adapter` value
-2. Load that adapter's skill (e.g., obsidian.md, local.md)
+2. Load adapter with user-override lookup:
+   - First: Read `~/.claude/skills/notes-adapter/{notes_adapter}.md` — if found, use it (user override)
+   - Fallback: load `skills/notes-adapter/{notes_adapter}.md` (plugin built-in)
+   - If neither exists: STOP — "Notes adapter '{name}' not found. Check ~/.claude/dev-workflow/config.json and ensure ~/.claude/skills/notes-adapter/{name}.md exists or the name matches a built-in adapter."
 3. Follow adapter's instructions for all read/write spec operations
+
+## User Adapters
+
+Place a file at `~/.claude/skills/notes-adapter/{name}.md` to create a custom adapter. Set `notes_adapter: "{name}"` in config.
+
+User adapters take precedence over plugin adapters with the same name. This allows you to override any built-in adapter or create one for an unsupported notes tool.
+
+Your adapter must implement the same interface: Read spec, Write spec.

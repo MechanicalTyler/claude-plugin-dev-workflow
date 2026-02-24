@@ -33,8 +33,8 @@ Read the CLAUDE.md file in this repository before starting.
 If you have a story ID:
 
 1. Read `~/.claude/dev-workflow/config.json` to determine `pm_adapter` and `notes_adapter`
-2. Load PM adapter skill → fetch story via PM adapter instructions
-3. Load notes adapter skill → read Claude Instructions spec using notes adapter
+2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story via PM adapter instructions
+3. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
 4. **If spec not found:** STOP and ask user to run `/start writer {story-id}` first
 5. Use spec as the primary implementation guide
 

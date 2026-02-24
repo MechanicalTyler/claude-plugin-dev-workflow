@@ -35,8 +35,8 @@ Story ID is passed as the first argument (e.g., `sc-12345` or `12345`).
 
 1. Read `~/.claude/dev-workflow/config.json`
 2. Note `pm_adapter` and `notes_adapter` values
-3. Load PM adapter skill file from `skills/pm-adapter/{pm_adapter}.md`
-4. Load notes adapter skill file from `skills/notes-adapter/{notes_adapter}.md`
+3. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md`
+4. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md`
 
 Parse story ID from `$ARGUMENTS`:
 - Accept formats: `sc-12345` or `12345`

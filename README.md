@@ -40,6 +40,26 @@ Create `~/.claude/dev-workflow/config.json`:
 
 **Notes adapters** (`skills/notes-adapter/`): `obsidian`, `local`
 
+## Custom Adapters
+
+You can override any built-in adapter or create a new one by placing a file in `~/.claude/skills/`:
+
+- PM adapters: `~/.claude/skills/pm-adapter/{name}.md`
+- Notes adapters: `~/.claude/skills/notes-adapter/{name}.md`
+
+Set the matching name in your config:
+
+```json
+{
+  "pm_adapter": "my-pm-tool",
+  "notes_adapter": "my-notes-tool"
+}
+```
+
+User adapters in `~/.claude/skills/` take precedence over plugin adapters with the same name. This means you can override a built-in adapter (e.g., create `~/.claude/skills/pm-adapter/shortcut.md` to customize Shortcut behavior) or add support for a new tool entirely.
+
+Your adapter must implement the same interface as built-in adapters — see `skills/pm-adapter/interface.md` or `skills/notes-adapter/interface.md` for the required capabilities.
+
 ## Installation
 
 ```json

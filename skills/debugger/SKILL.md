@@ -89,8 +89,8 @@ You need:
 
 ### Step 1: Load Adapters and Story
 1. Read `~/.claude/dev-workflow/config.json` for `pm_adapter` and `notes_adapter`
-2. Load PM adapter → fetch story by ID
-3. Load notes adapter → read Claude Instructions spec
+2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story by ID
+3. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
 4. **If spec not found:** STOP and ask user to run `/start writer {story-id}` first
 
 ### Step 2: Branch
@@ -120,9 +120,9 @@ You need:
 *Triggered when: story ID + `--rework` provided*
 
 ### Step 1: Load Context
-1. Read `~/.claude/dev-workflow/config.json` for adapters
-2. Load PM adapter → fetch story by ID (title, description, acceptance criteria, **all comments**)
-3. Load notes adapter → read Claude Instructions spec (best-effort — continue even if missing; rework requirements from comments take precedence)
+1. Read `~/.claude/dev-workflow/config.json` for `pm_adapter` and `notes_adapter`
+2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story by ID (title, description, acceptance criteria, **all comments**)
+3. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec (best-effort — continue even if missing; rework requirements from comments take precedence)
 
 ### Step 2: Extract Rework Requirements
 

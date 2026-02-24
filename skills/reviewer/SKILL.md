@@ -65,9 +65,9 @@ Also check PR title if not found in body.
 **Once ID found:**
 
 1. Read `~/.claude/dev-workflow/config.json` to get `pm_adapter` and `notes_adapter`
-2. Load PM adapter skill → fetch story by ID
+2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story by ID
 3. Detect service name: `git rev-parse --show-toplevel | xargs basename`
-4. Load notes adapter skill → read Claude Instructions spec
+4. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
 5. **If spec not found:** ERROR and ask user to run `/start writer {story-id}` first
 
 ---
