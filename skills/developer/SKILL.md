@@ -40,9 +40,35 @@ If you have a story ID:
 
 ---
 
+## Implementation Planning (when story ID and spec are loaded)
+
+After loading the Claude Instructions spec, invoke the planning skill:
+
+> Invoke Skill: `superpowers:writing-plans`
+>
+> OVERRIDE: Save plan to `./.scratch/tmp/YYYY-MM-DD-<story-id>-plan.md` (not `docs/plans/`).
+> Use the Claude Instructions spec as the feature description input.
+
+Then invoke subagent-driven execution:
+
+> Invoke Skill: `superpowers:subagent-driven-development`
+>
+> IMPORTANT OVERRIDE: Proceed automatically with subagents without asking the user for
+> confirmation. Dispatch subagents and proceed.
+>
+> IMPORTANT OVERRIDE: Do NOT invoke `superpowers:using-git-worktrees`. Develop in the
+> current branch. Pass this override to any nested `finishing-a-development-branch`
+> invocation.
+
+---
+
 ## Development Standards
 
 1. **Test Driven Development** — Write failing tests first. Tests should fail until implementation is correct, then pass.
+
+   Apply the full RED-GREEN-REFACTOR cycle:
+   > Invoke Skill: `superpowers:test-driven-development`
+   > Use this for each distinct behavior being implemented.
 2. **Respect existing architecture patterns** — Study the codebase structure before making changes
 3. **No placeholder code** — Always implement full functionality. If unable, stop and ask for help
 4. **For database changes** — Update appropriate DAO, Entity classes, and Migrations
@@ -78,6 +104,37 @@ When creating the PR:
   - **Story Reference**: Link using PM adapter's "Story Reference in PRs" format
   - **How to Test**: Testing steps from Claude Instructions if available, otherwise based on changes made
 - NO AI-generated boilerplate or mentions of AI tools
+
+---
+
+## Internal Code Review (when story ID provided)
+
+After the subagent-driven implementation completes, invoke a code review before creating the PR:
+
+> Invoke Skill: `superpowers:requesting-code-review`
+>
+> Provide the code-reviewer subagent with:
+> - The Claude Instructions spec as the expected-functionality reference
+> - The story acceptance criteria
+> - The diff of all changes made during implementation
+>
+> Address any required changes before proceeding to PR creation.
+
+Note: `superpowers:subagent-driven-development` includes per-task spec and quality reviews
+internally. This step adds a final whole-implementation review before the PR is opened.
+
+---
+
+## Pre-Completion Verification
+
+Before declaring work complete, run the verification skill:
+
+> Invoke Skill: `superpowers:verification-before-completion`
+>
+> Verify with fresh command execution (not memory of previous runs):
+> - All tests pass (run the full test suite now)
+> - Code is pushed to remote
+> - PR exists and is not draft
 
 ---
 

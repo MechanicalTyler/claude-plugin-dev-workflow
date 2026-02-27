@@ -64,17 +64,44 @@ You need:
 - Review test coverage for affected areas
 
 ### Step 4: Root Cause Analysis
+
+Apply systematic debugging discipline before tracing code:
+
+> Invoke Skill: `superpowers:systematic-debugging`
+>
+> Use the evidence from Step 3 as the input to Phase 1 (Root Cause Investigation).
+> Complete all four phases before proceeding to Step 5. Do not propose any fix until
+> hypothesis testing (Phase 3) is complete.
+
 - Trace code execution to where behavior diverges
 - Use Read tool to examine relevant files
 - Use Grep to find related patterns
 - Document findings with file:line references
 
 ### Step 5: Fix with TDD
+
+Apply the full TDD cycle:
+
+> Invoke Skill: `superpowers:test-driven-development`
+>
+> Write the failing test that reproduces the root cause from Step 4. Watch it fail (RED).
+> Implement only the root-cause fix (GREEN). Run full suite and refactor if needed (REFACTOR).
+> Do not implement changes beyond what is required to fix this specific root cause.
+
 - **Write failing test first** that reproduces the bug
 - Verify test fails before fixing
 - Implement fix following existing patterns
 - Verify test passes after fix
 - Run full test suite to check for regressions
+
+### Step 5.5: Verify Fix Before Committing
+
+> Invoke Skill: `superpowers:verification-before-completion`
+>
+> Verify with fresh execution:
+> - The bug-reproducing test now passes (run it now)
+> - The full test suite passes (run it now)
+> - No regressions in adjacent modules
 
 ### Step 6: Commit and Create PR
 - Branch naming: `fix/[brief-description]`
@@ -93,15 +120,49 @@ You need:
 3. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
 4. **If spec not found:** STOP and ask user to run `/start writer {story-id}` first
 
+### Step 1.5: Write Implementation Plan
+
+After loading the Claude Instructions spec:
+
+> Invoke Skill: `superpowers:writing-plans`
+>
+> OVERRIDE: Save plan to `./.scratch/tmp/YYYY-MM-DD-<story-id>-plan.md`.
+> Use the Claude Instructions spec as the feature description.
+
 ### Step 2: Branch
 - Check current branch — if on `main`, create a new branch: `feature/`, `fix/`, or `chore/`
 - If already on a feature branch, check if a PR exists
 
+### Step 2.5: Subagent-Driven Implementation
+
+With branch created and plan written:
+
+> Invoke Skill: `superpowers:subagent-driven-development`
+>
+> IMPORTANT OVERRIDE: Proceed automatically with subagents without asking the user for
+> confirmation. Dispatch subagents and proceed.
+>
+> IMPORTANT OVERRIDE: Do NOT invoke `superpowers:using-git-worktrees`. Develop in
+> the current branch. Pass this override to any nested `finishing-a-development-branch`
+> invocation.
+
 ### Step 3: Implement with TDD
 - Write failing tests first based on acceptance criteria
+
+   Apply the full RED-GREEN-REFACTOR cycle:
+   > Invoke Skill: `superpowers:test-driven-development`
+
 - Implement following Claude Instructions step-by-step
 - Run tests after each significant change
 - Follow existing architecture patterns
+
+### Step 3.5: Verify Before Pushing
+
+> Invoke Skill: `superpowers:verification-before-completion`
+>
+> Verify with fresh execution:
+> - All tests pass (run the full suite now)
+> - No files left unstaged
 
 ### Step 4: Commit and Push
 - Commit frequently with descriptive messages
@@ -144,6 +205,17 @@ Parse all story comments chronologically (oldest to newest). Identify:
 **If no comments indicate rework:**
 - STOP and ask: "I don't see any comments describing rework requirements. Can you clarify what needs to be changed?"
 
+### Step 2.5: Process Review Feedback
+
+Apply structured reception of the code review feedback before implementing:
+
+> Invoke Skill: `superpowers:receiving-code-review`
+>
+> Use the rework checklist from Step 2 as the "feedback" input. Complete the RECEPTION
+> (restate items), VERIFICATION (check against actual codebase), EVALUATION (identify
+> any valid pushback), and RESPONSE phases before creating the branch in Step 3. This
+> ensures each rework item is understood in codebase context before implementation.
+
 ### Step 3: Create New Branch
 
 **ALWAYS** create a new `fix/` branch — never reuse an existing rework branch.
@@ -157,7 +229,20 @@ git checkout -b fix/sc-XXXXX-rework
 
 - Address ONLY the items from story comments — no scope creep
 - Write failing tests for each rework item, then fix
+
+   Apply the full RED-GREEN-REFACTOR cycle:
+   > Invoke Skill: `superpowers:test-driven-development`
+
 - Commit frequently with descriptive messages
+
+### Step 4.5: Verify Before Creating PR
+
+> Invoke Skill: `superpowers:verification-before-completion`
+>
+> Verify with fresh execution:
+> - Each rework item from the Step 2 checklist has a passing test
+> - Full test suite passes
+> - Code is pushed to remote
 
 ### Step 5: Create PR
 

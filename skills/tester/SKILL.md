@@ -122,6 +122,20 @@ Instructions like "Run the dev CI in Github Actions", "Trigger the deploy-dev wo
 
 ---
 
+## Phase 3.5: Brainstorm Test Scenarios
+
+Before designing formal scenarios, invoke brainstorming to surface non-obvious test cases:
+
+> Invoke Skill: `superpowers:brainstorming`
+>
+> Focus on: edge cases not in acceptance criteria, error conditions, concurrent operations,
+> and UX failure modes.
+>
+> OVERRIDE: After brainstorming completes, do NOT invoke `superpowers:writing-plans`.
+> Return to Phase 4 with brainstorming output as additional scenario candidates.
+
+---
+
 ## Phase 4: Design Test Scenarios
 
 From story acceptance criteria and Claude Instructions (or PR description if no story):
@@ -143,11 +157,36 @@ From story acceptance criteria and Claude Instructions (or PR description if no 
 
 ## Phase 5: Execute Tests
 
+Apply the verification-before-completion discipline to every test assertion:
+
+> Invoke Skill: `superpowers:verification-before-completion`
+>
+> Apply the five-phase gate (Identify → Execute → Read → Confirm → Assert) to each test
+> scenario individually. Do not record a PASS without executing fresh commands and reading
+> their complete output in this session.
+
 For each scenario:
 1. Document the test step: what you're doing and expected outcome
 2. Execute the test
 3. Collect evidence: logs, API responses, screenshots, output
 4. Record: PASS or FAIL with specific details
+
+---
+
+## Phase 5.5: Parallel Failure Investigation (conditional)
+
+If Phase 5 produced **3 or more independent test failures** across different subsystems:
+
+> Invoke Skill: `superpowers:dispatching-parallel-agents`
+>
+> IMPORTANT OVERRIDE: Proceed automatically through all agent dispatch steps without
+> asking the user for confirmation. Dispatch agents and proceed.
+>
+> Group failures by domain (API failures, UI failures, data-layer failures, etc.).
+> Each agent investigates one domain. After completion, integrate findings into the Phase 6
+> test report under "Failures".
+>
+> If fewer than 3 independent failures exist, skip this step and proceed to Phase 6.
 
 ---
 

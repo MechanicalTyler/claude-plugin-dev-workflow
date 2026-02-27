@@ -2,6 +2,16 @@
 
 Role-based development workflow subagents with pluggable PM and notes adapters.
 
+## Prerequisites
+
+This plugin requires the [superpowers plugin](https://github.com/obra/superpowers) to be installed:
+
+```
+/plugin install superpowers@superpowers-marketplace
+```
+
+The superpowers plugin provides core methodology skills (TDD, systematic debugging, brainstorming, verification gates, subagent orchestration) that are invoked throughout the dev-workflow skill phases.
+
 ## Roles
 
 | Command | Role | Purpose |
