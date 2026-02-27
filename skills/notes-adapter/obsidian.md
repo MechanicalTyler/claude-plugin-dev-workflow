@@ -15,9 +15,24 @@ Example: for story sc-12345 in service `api-server`:
 /Users/you/Documents/Obsidian/MyVault/Engineering/Prompts/sc-12345/api-server.md
 ```
 
+## Service name detection
+
+Get the service name from the current repo:
+```bash
+git rev-parse --show-toplevel | xargs basename
+```
+
 ## Read spec
 
-Use the Read tool with the full spec path. If the file does not exist, return "not found".
+Follow these steps in order:
+
+1. Run the service name detection command above to get `{service-name}`
+2. Construct the full path: `{vault_path}/{prompts_dir}/sc-{story-id}/{service-name}.md`
+3. Use the Read tool to read the file at that path
+4. If not found, use Glob to search `{vault_path}/{prompts_dir}/sc-{story-id}/*.md` as a fallback:
+   - If exactly one file is found, read it
+   - If multiple files are found, ask the user which service to use
+   - If no files are found, return "not found"
 
 ## Write spec
 
