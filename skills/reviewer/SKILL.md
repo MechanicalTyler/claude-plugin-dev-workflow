@@ -112,6 +112,18 @@ Analyze all file changes and understand the scope of modifications.
 
 ## Phase 5: Multi-Perspective Code Review
 
+Before beginning the perspective-based review, invoke the code review request skill:
+
+> Invoke Skill: `superpowers:requesting-code-review`
+>
+> Provide the code-reviewer subagent with:
+> - The Claude Instructions spec loaded in Phase 2 as the expected-functionality reference
+> - The story acceptance criteria from Phase 2
+> - The PR diff from Phase 4 as the code under review
+>
+> After the subagent completes, incorporate its findings into the four-perspective analysis
+> below. Do not duplicate findings — use subagent output to inform and enrich each section.
+
 Review from four perspectives sequentially, comparing against: story requirements, Claude Instructions, and PR diff.
 
 ### A. Product Manager Review (Feature Completeness)
@@ -139,6 +151,17 @@ Review from four perspectives sequentially, comparing against: story requirement
 - Are new abstractions actually needed?
 - Does the structure align with the existing architecture?
 - Are there any concerning dependencies introduced?
+
+---
+
+## Phase 5.5: Verify Before Submitting Review
+
+> Invoke Skill: `superpowers:verification-before-completion`
+>
+> Verify with fresh command execution:
+> - All CI/CD checks still pass (re-run status check from Phase 3)
+> - The PR diff reflects current HEAD (no new commits since loading in Phase 4)
+> - No required changes identified in Phase 5 have been overlooked
 
 ---
 

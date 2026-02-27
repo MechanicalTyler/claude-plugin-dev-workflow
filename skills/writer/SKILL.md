@@ -56,6 +56,20 @@ If the story contains screenshots, mockup images, or visual attachments you cann
 
 ---
 
+## Phase 2.5: Brainstorm Ambiguities and Approach
+
+Before the ULTRATHINK deep-dive, invoke brainstorming to surface unclear requirements:
+
+> Invoke Skill: `superpowers:brainstorming`
+>
+> Focus on: acceptance criteria ambiguities, implicit requirements not stated in the story,
+> and architectural questions.
+>
+> OVERRIDE: After brainstorming completes, do NOT invoke `superpowers:writing-plans`.
+> Return to Phase 3 (ULTRATHINK) — the brainstorming output informs that analysis.
+
+---
+
 ## Phase 3: ULTRATHINK — Story Analysis and Codebase Investigation
 
 **Story Analysis:**
@@ -132,6 +146,20 @@ Analyze from four perspectives sequentially:
 - Are there performance implications?
 - Are there security considerations?
 - Are there scalability concerns?
+
+---
+
+## Phase 5.5: Structure Implementation Tasks
+
+Before writing the final spec, use the writing-plans methodology to structure the implementation steps with granularity:
+
+> Invoke Skill: `superpowers:writing-plans`
+>
+> OVERRIDE: Do NOT save a separate plan file. Use the task breakdown produced here as
+> the content for the "Implementation Steps" section of the Claude Instructions spec in Phase 6.
+>
+> OVERRIDE: Do NOT offer execution options at the end of this invocation. Output feeds into
+> Phase 6 spec writing only.
 
 ---
 
