@@ -28,6 +28,15 @@ PR number is passed as the argument (e.g., `42`).
 - Never give up. If problems arise, ask for help.
 - If unable to access a screenshot, mockup, or attachment — STOP and ask the user. Do not proceed with incomplete data.
 
+### Bash Command Rules
+
+To avoid triggering unnecessary approval prompts:
+
+- **No shell variable assignments** — Never write `VAR=$(command)` or `VAR=value` at the start of a Bash call. Use each command's output directly in subsequent commands as a literal value.
+- **No comments before commands** — Never put `# comment` lines before or inside a Bash call. Remove all inline comments from shell commands.
+- **No multi-`$()` compositions** — Never build a single command from multiple `$()` substitutions. Run each sub-command separately and use its literal output value.
+- **One operation per call** — Each distinct shell operation should be its own Bash tool call.
+
 ### Tester-Specific Rules
 - Read and understand original requirements before testing
 - **Deploy to test/dev environment only** — never staging or production
@@ -39,13 +48,13 @@ PR number is passed as the argument (e.g., `42`).
 
 ## Phase 1: Load PR Details
 
+Get PR details using the actual PR number from arguments:
+
 ```bash
-PR_NUMBER=$ARGUMENTS
-REPO_OWNER=$(gh repo view --json owner -q .owner.login)
-REPO_NAME=$(gh repo view --json name -q .name)
-gh pr view $PR_NUMBER --json number,title,body,headRefName
-BRANCH=$(gh pr view $PR_NUMBER --json headRefName -q .headRefName)
+gh pr view 42 --json number,title,body,headRefName
 ```
+
+The `headRefName` field in the JSON output is the branch name — note it for use in subsequent commands.
 
 Extract expected behavior, acceptance criteria, and branch name.
 
@@ -91,15 +100,17 @@ Instructions like "Run the dev CI in Github Actions", "Trigger the deploy-dev wo
    ```
    Match the instruction to the most relevant workflow name or file.
 
-2. Trigger the workflow on the PR branch:
+2. Trigger the workflow on the PR branch (use the actual branch name from Phase 1):
    ```bash
-   gh workflow run <workflow-file-or-id> --ref $BRANCH
+   gh workflow run <workflow-file-or-id> --ref "feature/branch-name"
    ```
 
 3. Get the run ID (allow a few seconds for the run to register):
    ```bash
    sleep 5
-   gh run list --workflow=<workflow> --branch=$BRANCH --limit=1 --json databaseId -q '.[0].databaseId'
+   ```
+   ```bash
+   gh run list --workflow=<workflow> --branch="feature/branch-name" --limit=1 --json databaseId -q '.[0].databaseId'
    ```
 
 4. Watch until completion:
@@ -224,14 +235,16 @@ If Phase 5 produced **3 or more independent test failures** across different sub
 
 ## Phase 7: Submit Review
 
-Submit formal GitHub review:
-- **APPROVE** (`gh pr review $PR_NUMBER --approve`) if all tests pass
-- **REQUEST_CHANGES** (`gh pr review $PR_NUMBER --request-changes`) if any test fails
+Submit formal GitHub review using the actual PR number:
+- **APPROVE** (`gh pr review 42 --approve`) if all tests pass
+- **REQUEST_CHANGES** (`gh pr review 42 --request-changes`) if any test fails
 
 Include full test report in the review body.
 
-Optionally add labels to track testing status:
+Optionally add labels to track testing status (use the actual PR number):
 ```bash
-gh pr edit $PR_NUMBER --add-label "tested-in-dev"    # if passed
-gh pr edit $PR_NUMBER --add-label "tests-failing"    # if failed
+gh pr edit 42 --add-label "tested-in-dev"
+```
+```bash
+gh pr edit 42 --add-label "tests-failing"
 ```

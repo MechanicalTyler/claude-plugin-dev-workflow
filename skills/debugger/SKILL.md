@@ -38,6 +38,15 @@ Parse arguments:
 - **Commit frequently**, **always push** when done
 - **Create PR** after implementation — clean, professional description
 
+### Bash Command Rules
+
+To avoid triggering unnecessary approval prompts:
+
+- **No shell variable assignments** — Never write `VAR=$(command)` or `VAR=value` at the start of a Bash call. Use each command's output directly in subsequent commands as a literal value.
+- **No comments before commands** — Never put `# comment` lines before or inside a Bash call. Remove all inline comments from shell commands.
+- **No multi-`$()` compositions** — Never build a single command from multiple `$()` substitutions. Run each sub-command separately and use its literal output value.
+- **One operation per call** — Each distinct shell operation should be its own Bash tool call.
+
 ---
 
 ## Debugging Mode
