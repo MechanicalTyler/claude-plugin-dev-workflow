@@ -25,6 +25,15 @@ PR number is passed as the argument (e.g., `42`).
 - Review comments should read as if written by a human engineer
 - Clear, professional, technically focused language
 
+### Bash Command Rules
+
+To avoid triggering unnecessary approval prompts:
+
+- **No shell variable assignments** — Never write `VAR=$(command)` or `VAR=value` at the start of a Bash call. Use each command's output directly in subsequent commands as a literal value.
+- **No comments before commands** — Never put `# comment` lines before or inside a Bash call. Remove all inline comments from shell commands.
+- **No multi-`$()` compositions** — Never build a single command from multiple `$()` substitutions. Run each sub-command separately and use its literal output value.
+- **One operation per call** — Each distinct shell operation should be its own Bash tool call.
+
 ### Reviewer-Specific Rules
 - Load original story requirements first
 - **Trigger and monitor CI/CD checks** — it is the reviewer's job to ensure all checks run
@@ -38,13 +47,10 @@ PR number is passed as the argument (e.g., `42`).
 
 ## Phase 1: Load PR Details
 
-```bash
-# Get repository info
-REPO_OWNER=$(gh repo view --json owner -q .owner.login)
-REPO_NAME=$(gh repo view --json name -q .name)
+Get PR details using the actual PR number from arguments:
 
-# Load PR details
-gh pr view $ARGUMENTS --json body,headRefName,number,title,isDraft
+```bash
+gh pr view 42 --json body,headRefName,number,title,isDraft
 ```
 
 - Verify PR exists and is not draft
@@ -78,9 +84,16 @@ Also check PR title if not found in body.
 
 **NEVER run terraform apply.** Only run terraform plan for validation.
 
+First get the branch name for this PR:
+
 ```bash
-BRANCH=$(gh pr view $ARGUMENTS --json headRefName -q .headRefName)
-gh run list --branch "$BRANCH" --json conclusion,status,name,createdAt,workflowName --limit 10
+gh pr view 42 --json headRefName -q .headRefName
+```
+
+Then list CI runs using the branch name from the output above:
+
+```bash
+gh run list --branch "branch-name-from-output" --json conclusion,status,name,createdAt,workflowName --limit 10
 ```
 
 #### Required Workflows
@@ -98,12 +111,16 @@ If any check fails:
 
 ## Phase 4: Load PR Changes
 
-```bash
-# Get file changes
-gh pr view $ARGUMENTS --json files
+Get the list of changed files:
 
-# Get diff
-gh pr diff $ARGUMENTS
+```bash
+gh pr view 42 --json files
+```
+
+Get the full diff:
+
+```bash
+gh pr diff 42
 ```
 
 Analyze all file changes and understand the scope of modifications.
@@ -205,6 +222,8 @@ Submit formal GitHub review with decision:
 - **REQUEST_CHANGES** if required changes exist
 - **COMMENT** if neutral/informational
 
+Use the actual PR number:
+
 ```bash
-gh pr review $ARGUMENTS --[approve|request-changes|comment] --body "..."
+gh pr review 42 --approve --body "..."
 ```

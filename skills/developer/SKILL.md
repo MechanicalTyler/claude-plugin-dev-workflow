@@ -76,10 +76,14 @@ Then invoke subagent-driven execution:
 
 ---
 
-## File Operations
+## File and Command Operations
 
 - **Use Write tool for files** — Never use `cat` or `echo` with redirection to write files
 - **Stay within repository** — Do not `cd` outside the repository directory
+- **No shell variable assignments** — Never write `VAR=$(command)` or `VAR=value` at the start of a Bash call. Use each command's output directly in subsequent commands as a literal value.
+- **No comments before commands** — Never put `# comment` lines before or inside a Bash call. Remove all inline comments from shell commands.
+- **No multi-`$()` compositions** — Never build a single command from multiple `$()` substitutions. Run each sub-command separately and use its literal output value.
+- **One operation per call** — Each distinct shell operation should be its own Bash tool call.
 
 ---
 
