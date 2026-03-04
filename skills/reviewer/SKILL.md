@@ -69,8 +69,8 @@ gh pr reviews 42 --json author,state,body,submittedAt
 **Decision logic:**
 
 - If the reviews array is empty (no reviews at all) → **First Review Mode**
-- If reviews exist but none have `state: REQUEST_CHANGES` → **First Review Mode**
-- If at least one review has `state: REQUEST_CHANGES` → **Re-Review Mode**
+- If reviews exist but none have `state: CHANGES_REQUESTED` → **First Review Mode**
+- If at least one review has `state: CHANGES_REQUESTED` → **Re-Review Mode**
 
 Output a mode banner before proceeding:
 
@@ -79,9 +79,9 @@ Output a mode banner before proceeding:
 
 **For Re-Review Mode only:**
 
-Parse the body of the most recent `REQUEST_CHANGES` review. Extract the bullet list under the `## Required Changes` section verbatim. This is the **Previous Required Changes** list. Carry it forward to Phase 5.
+Parse the body of the most recent `CHANGES_REQUESTED` review. Extract the bullet list under the `## Required Changes` section verbatim. This is the **Previous Required Changes** list. Carry it forward to Phase 5.
 
-**Fallback:** If the most recent `REQUEST_CHANGES` review body is empty, null, or does not contain a `## Required Changes` section with bullet points, log a warning: "Previous required changes not found — falling back to First Review Mode." Then treat this invocation as First Review Mode.
+**Fallback:** If the most recent `CHANGES_REQUESTED` review body is empty, null, or does not contain a `## Required Changes` section with bullet points, log a warning: "Previous required changes not found — falling back to First Review Mode." Then treat this invocation as First Review Mode.
 
 ---
 
@@ -252,7 +252,8 @@ Review from four perspectives sequentially, comparing against: story requirement
 > Verify with fresh command execution:
 > - All CI/CD checks still pass (re-run status check from Phase 3)
 > - The PR diff reflects current HEAD (no new commits since loading in Phase 4)
-> - No required changes identified in Phase 5 have been overlooked
+> - **First Review Mode:** No required changes identified in Phase 5 have been overlooked
+> - **Re-Review Mode:** All unresolved items from the Phase 5 verification checklist have been carried forward to Phase 6. No New Critical Findings that meet the exception threshold have been omitted.
 
 ---
 
