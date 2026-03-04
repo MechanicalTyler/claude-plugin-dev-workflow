@@ -156,6 +156,45 @@ Analyze all file changes and understand the scope of modifications.
 
 ## Phase 5: Multi-Perspective Code Review
 
+> **MODE CHECK:** Apply the correct review mode determined in Phase 1.5.
+
+### First Review Mode
+
+> **EXHAUSTIVENESS MANDATE — FIRST REVIEW**
+> This is the only opportunity to identify issues. A re-review will not accept new findings unless they meet the Critical Exception Threshold (defined below). You must find everything now:
+> - Read the entire diff — every file, every line
+> - Apply all four perspectives with maximum scrutiny
+> - Do not defer marginal issues thinking you can raise them next time — there is no next time
+> - If unsure whether something is worth flagging, flag it
+
+Proceed with the subagent skill invocation and four-perspective analysis below.
+
+---
+
+### Re-Review Mode
+
+**Do not run the subagent skill invocation or four-perspective analysis. Replace them entirely with the following:**
+
+Work through each item in the **Previous Required Changes** list extracted in Phase 1.5. For each item:
+
+- **Status:** Addressed / Not Addressed / Partially Addressed
+- **Evidence:** Specific `file:line` reference from the current diff showing the change (or its absence)
+
+After verifying all previous items, evaluate whether any **new** findings meet the Critical Exception Threshold:
+
+> **Critical Exception Threshold** — A new finding qualifies ONLY if ALL of the following are true:
+> 1. It is a security vulnerability, data loss risk, or correctness failure that would cause incorrect behavior in production
+> 2. It was introduced by code added **after** the original review — it does not appear in the original diff
+> 3. It could not reasonably have been identified from the original diff at the time of first review
+>
+> If a finding does not satisfy all three criteria, it must be omitted. Do not rationalize marginal findings into this threshold.
+
+List qualifying new findings under a **New Critical Findings** section with an explicit per-item justification of why the threshold is met.
+
+Once the verification checklist is complete, skip to Phase 5.5.
+
+---
+
 Before beginning the perspective-based review, invoke the code review request skill:
 
 > Invoke Skill: `superpowers:requesting-code-review`
