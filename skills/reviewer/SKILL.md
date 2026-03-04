@@ -58,6 +58,30 @@ gh pr view 42 --json body,headRefName,number,title,isDraft
 
 ---
 
+## Phase 1.5: Detect Review Mode
+
+Fetch all existing reviews on this PR:
+
+```bash
+gh pr reviews {PR} --json author,state,body,submittedAt
+```
+
+**Decision logic:**
+
+- If no reviews with `state: REQUEST_CHANGES` exist → **First Review Mode**
+- If at least one `REQUEST_CHANGES` review exists → **Re-Review Mode**
+
+Output a mode banner before proceeding:
+
+- `[FIRST REVIEW]` — you are doing the initial review; exhaustiveness is mandatory
+- `[RE-REVIEW — verifying N previously requested changes]` — you are checking whether prior requests were addressed
+
+**For Re-Review Mode only:**
+
+Parse the body of the most recent `REQUEST_CHANGES` review. Extract the bullet list under the `## Required Changes` section verbatim. This is the **Previous Required Changes** list. Carry it forward to Phase 5.
+
+---
+
 ## Phase 2: Extract Story ID and Load Requirements
 
 Parse PR body for story reference using the PM adapter's "Story Reference in PRs" format.
