@@ -265,6 +265,33 @@ Review from four perspectives sequentially, comparing against: story requirement
 - 3-4: Significant problems, request changes
 - 1-2: Fundamental issues, request changes with priority concerns
 
+*In Re-Review Mode: score is based primarily on how completely previous required changes were addressed. New critical findings that meet the exception threshold lower the score as in first review.*
+
+**For Re-Review Mode**, use this body format instead:
+
+~~~markdown
+## Review Score: X/10
+
+## Summary
+[2-3 sentence overview of whether previous requests were addressed]
+
+## Previous Changes Verification
+- [original required change item]: Addressed — `file.ts:42` resolves the issue
+- [original required change item]: Not Addressed — no relevant change found in diff
+- [original required change item]: Partially Addressed — `file.ts:88` handles the happy path but the error case remains
+
+## New Critical Findings (Exception Threshold Met)
+[Omit this section entirely if no new findings qualify. If present, include per-item threshold justification for each finding.]
+
+## Required Changes
+[Unresolved items from Previous Changes Verification only, plus any qualifying New Critical Findings. No other new items are permitted in re-review.]
+
+## Suggestions (Optional)
+[Omit entirely in re-review unless directly related to an unresolved previous request]
+~~~
+
+**For First Review Mode**, use the original body format:
+
 **Review body format:**
 ```markdown
 ## Review Score: X/10
