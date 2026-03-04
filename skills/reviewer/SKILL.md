@@ -157,6 +157,8 @@ Analyze all file changes and understand the scope of modifications.
 ## Phase 5: Multi-Perspective Code Review
 
 > **MODE CHECK:** Apply the correct review mode determined in Phase 1.5.
+> - If the mode banner was `[FIRST REVIEW]` → follow **First Review Mode** below.
+> - If the mode banner was `[RE-REVIEW]` → follow **Re-Review Mode** below.
 
 ### First Review Mode
 
@@ -180,12 +182,14 @@ Work through each item in the **Previous Required Changes** list extracted in Ph
 - **Status:** Addressed / Not Addressed / Partially Addressed
 - **Evidence:** Specific `file:line` reference from the current diff showing the change (or its absence)
 
+Items with **Status: Not Addressed** or **Partially Addressed** must be carried forward verbatim into the Required Changes section of the Phase 6 review body. If a required change was addressed by deleting the problematic code entirely, mark it **Addressed** with Evidence citing the deletion.
+
 After verifying all previous items, evaluate whether any **new** findings meet the Critical Exception Threshold:
 
 > **Critical Exception Threshold** — A new finding qualifies ONLY if ALL of the following are true:
 > 1. It is a security vulnerability, data loss risk, or correctness failure that would cause incorrect behavior in production
 > 2. It was introduced by code added **after** the original review — it does not appear in the original diff
-> 3. It could not reasonably have been identified from the original diff at the time of first review
+> 3. It is not present in the original diff in any form — not as the same code, a functionally equivalent pattern, or a related code path. If it appears anywhere in the original diff, it does not qualify regardless of how subtle or easy to overlook it was.
 >
 > If a finding does not satisfy all three criteria, it must be omitted. Do not rationalize marginal findings into this threshold.
 
@@ -193,7 +197,11 @@ List qualifying new findings under a **New Critical Findings** section with an e
 
 Once the verification checklist is complete, skip to Phase 5.5.
 
+> **STOP — Re-Review Mode ends here. Do not continue reading Phase 5. Proceed directly to Phase 5.5.**
+
 ---
+
+### First Review Mode (continued)
 
 Before beginning the perspective-based review, invoke the code review request skill:
 
@@ -209,13 +217,13 @@ Before beginning the perspective-based review, invoke the code review request sk
 
 Review from four perspectives sequentially, comparing against: story requirements, Claude Instructions, and PR diff.
 
-### A. Product Manager Review (Feature Completeness)
+#### A. Product Manager Review (Feature Completeness)
 - Does the implementation match the acceptance criteria?
 - Does it solve the original user problem?
 - Are there UX concerns?
 - Are there gaps between what was requested and delivered?
 
-### B. Principal Developer Review (Code Quality)
+#### B. Principal Developer Review (Code Quality)
 - Are there bugs or logic errors?
 - Is error handling comprehensive?
 - Are there debug statements or commented-out code that shouldn't be there?
@@ -223,13 +231,13 @@ Review from four perspectives sequentially, comparing against: story requirement
 - Are there any obvious performance issues?
 - Are there security vulnerabilities (injection, auth bypass, etc.)?
 
-### C. QA Engineer Review (Test Coverage)
+#### C. QA Engineer Review (Test Coverage)
 - Are there sufficient tests for the new functionality?
 - Are any tests disabled, skipped, or mocked to always pass?
 - Do tests cover error cases and edge cases?
 - Would these tests have caught the bug (for bug fixes)?
 
-### D. Software Architect Review (Structure)
+#### D. Software Architect Review (Structure)
 - Is the code over-engineered for this use case?
 - Are new abstractions actually needed?
 - Does the structure align with the existing architecture?
