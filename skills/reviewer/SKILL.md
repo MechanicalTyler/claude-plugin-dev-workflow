@@ -58,6 +58,33 @@ gh pr view 42 --json body,headRefName,number,title,isDraft
 
 ---
 
+## Phase 1.5: Detect Review Mode
+
+Fetch all existing reviews on this PR. Use the actual PR number from arguments.
+
+```bash
+gh pr reviews 42 --json author,state,body,submittedAt
+```
+
+**Decision logic:**
+
+- If the reviews array is empty (no reviews at all) → **First Review Mode**
+- If reviews exist but none have `state: CHANGES_REQUESTED` → **First Review Mode**
+- If at least one review has `state: CHANGES_REQUESTED` → **Re-Review Mode**
+
+Output a mode banner before proceeding:
+
+- `[FIRST REVIEW]` — you are doing the initial review; exhaustiveness is mandatory
+- `[RE-REVIEW — verifying N previously requested changes]` (where N is the count of bullet items extracted from the `## Required Changes` section) — you are checking whether prior requests were addressed
+
+**For Re-Review Mode only:**
+
+Parse the body of the most recent `CHANGES_REQUESTED` review. Extract the bullet list under the `## Required Changes` section verbatim. This is the **Previous Required Changes** list. Carry it forward to Phase 5.
+
+**Fallback:** If the most recent `CHANGES_REQUESTED` review body is empty, null, or does not contain a `## Required Changes` section with bullet points, log a warning: "Previous required changes not found — falling back to First Review Mode." Then treat this invocation as First Review Mode.
+
+---
+
 ## Phase 2: Extract Story ID and Load Requirements
 
 Parse PR body for story reference using the PM adapter's "Story Reference in PRs" format.
@@ -129,6 +156,53 @@ Analyze all file changes and understand the scope of modifications.
 
 ## Phase 5: Multi-Perspective Code Review
 
+> **MODE CHECK:** Apply the correct review mode determined in Phase 1.5.
+> - If the mode banner was `[FIRST REVIEW]` → follow **First Review Mode** below.
+> - If the mode banner was `[RE-REVIEW]` → follow **Re-Review Mode** below.
+
+### First Review Mode
+
+> **EXHAUSTIVENESS MANDATE — FIRST REVIEW**
+> This is the only opportunity to identify issues. A re-review will not accept new findings unless they meet the Critical Exception Threshold (defined below). You must find everything now:
+> - Read the entire diff — every file, every line
+> - Apply all four perspectives with maximum scrutiny
+> - Do not defer marginal issues thinking you can raise them next time — there is no next time
+> - If unsure whether something is worth flagging, flag it
+
+Proceed with the subagent skill invocation and four-perspective analysis below.
+
+---
+
+### Re-Review Mode
+
+**Do not run the subagent skill invocation or four-perspective analysis. Replace them entirely with the following:**
+
+Work through each item in the **Previous Required Changes** list extracted in Phase 1.5. For each item:
+
+- **Status:** Addressed / Not Addressed / Partially Addressed
+- **Evidence:** Specific `file:line` reference from the current diff showing the change (or its absence)
+
+Items with **Status: Not Addressed** or **Partially Addressed** must be carried forward verbatim into the Required Changes section of the Phase 6 review body. If a required change was addressed by deleting the problematic code entirely, mark it **Addressed** with Evidence citing the deletion.
+
+After verifying all previous items, evaluate whether any **new** findings meet the Critical Exception Threshold:
+
+> **Critical Exception Threshold** — A new finding qualifies ONLY if ALL of the following are true:
+> 1. It is a security vulnerability, data loss risk, or correctness failure that would cause incorrect behavior in production
+> 2. It was introduced by code added **after** the original review — it does not appear in the original diff
+> 3. It is not present in the original diff in any form — not as the same code, a functionally equivalent pattern, or a related code path. If it appears anywhere in the original diff, it does not qualify regardless of how subtle or easy to overlook it was.
+>
+> If a finding does not satisfy all three criteria, it must be omitted. Do not rationalize marginal findings into this threshold.
+
+List qualifying new findings under a **New Critical Findings** section with an explicit per-item justification of why the threshold is met.
+
+Once the verification checklist is complete, skip to Phase 5.5.
+
+> **STOP — Re-Review Mode ends here. Do not continue reading Phase 5. Proceed directly to Phase 5.5.**
+
+---
+
+### First Review Mode (continued)
+
 Before beginning the perspective-based review, invoke the code review request skill:
 
 > Invoke Skill: `superpowers:requesting-code-review`
@@ -143,13 +217,13 @@ Before beginning the perspective-based review, invoke the code review request sk
 
 Review from four perspectives sequentially, comparing against: story requirements, Claude Instructions, and PR diff.
 
-### A. Product Manager Review (Feature Completeness)
+#### A. Product Manager Review (Feature Completeness)
 - Does the implementation match the acceptance criteria?
 - Does it solve the original user problem?
 - Are there UX concerns?
 - Are there gaps between what was requested and delivered?
 
-### B. Principal Developer Review (Code Quality)
+#### B. Principal Developer Review (Code Quality)
 - Are there bugs or logic errors?
 - Is error handling comprehensive?
 - Are there debug statements or commented-out code that shouldn't be there?
@@ -157,13 +231,13 @@ Review from four perspectives sequentially, comparing against: story requirement
 - Are there any obvious performance issues?
 - Are there security vulnerabilities (injection, auth bypass, etc.)?
 
-### C. QA Engineer Review (Test Coverage)
+#### C. QA Engineer Review (Test Coverage)
 - Are there sufficient tests for the new functionality?
 - Are any tests disabled, skipped, or mocked to always pass?
 - Do tests cover error cases and edge cases?
 - Would these tests have caught the bug (for bug fixes)?
 
-### D. Software Architect Review (Structure)
+#### D. Software Architect Review (Structure)
 - Is the code over-engineered for this use case?
 - Are new abstractions actually needed?
 - Does the structure align with the existing architecture?
@@ -178,7 +252,8 @@ Review from four perspectives sequentially, comparing against: story requirement
 > Verify with fresh command execution:
 > - All CI/CD checks still pass (re-run status check from Phase 3)
 > - The PR diff reflects current HEAD (no new commits since loading in Phase 4)
-> - No required changes identified in Phase 5 have been overlooked
+> - **First Review Mode:** No required changes identified in Phase 5 have been overlooked
+> - **Re-Review Mode:** All unresolved items from the Phase 5 verification checklist have been carried forward to Phase 6. No New Critical Findings that meet the exception threshold have been omitted.
 
 ---
 
@@ -190,6 +265,33 @@ Review from four perspectives sequentially, comparing against: story requirement
 - 5-6: Adequate but has issues that should be addressed
 - 3-4: Significant problems, request changes
 - 1-2: Fundamental issues, request changes with priority concerns
+
+*In Re-Review Mode: score is based primarily on how completely previous required changes were addressed. New critical findings that meet the exception threshold lower the score as in first review.*
+
+**For Re-Review Mode**, use this body format instead:
+
+~~~markdown
+## Review Score: X/10
+
+## Summary
+[2-3 sentence overview of whether previous requests were addressed]
+
+## Previous Changes Verification
+- [original required change item]: Addressed — `file.ts:42` resolves the issue
+- [original required change item]: Not Addressed — no relevant change found in diff
+- [original required change item]: Partially Addressed — `file.ts:88` handles the happy path but the error case remains
+
+## New Critical Findings (Exception Threshold Met)
+[Omit this section entirely if no new findings qualify. If present, include per-item threshold justification for each finding.]
+
+## Required Changes
+[Unresolved items from Previous Changes Verification only, plus any qualifying New Critical Findings. No other new items are permitted in re-review.]
+
+## Suggestions (Optional)
+[Omit entirely in re-review unless directly related to an unresolved previous request]
+~~~
+
+**For First Review Mode**, use the original body format:
 
 **Review body format:**
 ```markdown
