@@ -55,3 +55,45 @@ jira issue move {KEY} "In Progress"
 Format: `Jira Issue: {KEY}`
 
 Include this in the PR body so reviewers can find the original requirements.
+
+## Create Story
+
+Use the `jira` CLI (Ankitpokhrel) to create a new issue. Write the body to a temp file first to avoid shell interpolation issues with multi-line markdown:
+
+```bash
+# Write body to .scratch/tmp/jira-issue-body.md using the Write tool first, then:
+jira issue create --project {PROJECT_KEY} --summary "{title}" --body-file .scratch/tmp/jira-issue-body.md --type Story
+```
+
+**Note:** `PROJECT_KEY` is the Jira project prefix (e.g., `ENG`, `PROJ`). If not available in context, ask the user for the project key before creating the story.
+
+### Body format
+
+Construct the body as:
+
+```
+## Original Request
+{originalRequest}
+
+---
+
+## Story
+
+{description}
+
+**Repo to modify:** {repoToModify}
+
+**Repos to reference:** {reposToReference joined with ", " or "(none)" if empty}
+
+**Acceptance Criteria**
+- [ ] {ac item 1}
+- [ ] {ac item 2}
+...
+
+**Testing Instructions**
+1. {step 1}
+2. {step 2}
+...
+```
+
+Return: the created issue key (e.g., `PROJ-123`) and URL for confirmation.

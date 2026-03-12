@@ -22,6 +22,8 @@ Parse first argument as role, remaining as role-specific parameters.
 
 **`rework story-id`** → Use the Skill tool with `dev-workflow:debugger`, passing story ID + `--rework` flag
 
+**`story-starter [description]`** → Use the Skill tool with `dev-workflow:story-starter` (pass optional description as args if provided)
+
 **No role or invalid role** → Display usage below
 
 ---
@@ -36,6 +38,8 @@ Parse first argument as role, remaining as role-specific parameters.
 /start tester 42              # Test PR #42 in dev environment
 /start debugger               # Debug workflow (prompts for problem description)
 /start rework sc-12345        # Address rework on story sc-12345 (reads story comments)
+/start story-starter                        # Interactive story creation
+/start story-starter "add dark mode"        # Start with a feature description
 ```
 
 ---
@@ -47,3 +51,4 @@ Parse first argument as role, remaining as role-specific parameters.
 - **developer** without a story ID runs the workflow with general rules only (no PM/notes adapter loading)
 - **rework** always creates a new `fix/` branch — never reuses existing branches
 - All roles read `~/.claude/dev-workflow/config.json` to determine PM and notes adapters
+- **story-starter** reads `~/.claude/dev-workflow/config.json` to determine PM adapter; requires a PM adapter that supports the Create Story operation

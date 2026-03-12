@@ -1,10 +1,10 @@
 {
   "name": "dev-workflow",
-  "version": "1.5.4",
+  "version": "1.6.0",
   "description": "Role-based development workflow subagents with pluggable PM and notes adapters",
   "author": {
     "name": "MechanicalTyler"
   },
   "license": "MIT",
-  "keywords": ["workflow", "agents", "developer", "reviewer", "tester"]
+  "keywords": ["workflow", "agents", "developer", "reviewer", "tester", "story-starter"]
 }
