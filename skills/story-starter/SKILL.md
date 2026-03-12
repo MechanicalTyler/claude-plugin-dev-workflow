@@ -30,6 +30,15 @@ No required arguments. Optional: a brief feature description as a starting promp
 
 ---
 
+## Phase 0: Gather Story Description
+
+- If `$ARGUMENTS` is non-empty: use it as the story description and proceed to Phase 1
+- If `$ARGUMENTS` is empty: use `AskUserQuestion` to ask —
+  > "What story would you like to create?"
+  Then use the answer as the story description and proceed to Phase 1
+
+---
+
 ## Phase 1: Load Adapters
 
 1. Read `~/.claude/dev-workflow/config.json`
@@ -63,9 +72,8 @@ No required arguments. Optional: a brief feature description as a starting promp
 
 ## Phase 3: Initial Prompt Collection
 
-- If `$ARGUMENTS` is non-empty: use it as the initial feature description — skip asking
-- If `$ARGUMENTS` is empty and workspace has repos: ask — "What feature would you like to build?"
-- If `$ARGUMENTS` is empty and no repos found: ask — "What feature would you like to build? (No repos detected in workspace — please also describe the target repo)"
+- Use the story description collected in Phase 0 as the initial feature description
+- If no repos were found in Phase 2: note this context so Phase 4 can ask the user to identify the target repo if needed
 
 ---
 
