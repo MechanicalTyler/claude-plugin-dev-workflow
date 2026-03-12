@@ -40,3 +40,56 @@ Linear MCP update tool, or GraphQL mutation for state/label changes.
 Format: `Linear Issue: LIN-XXX`
 
 Include this in the PR body so reviewers can find the original requirements.
+
+## Create Story
+
+Use the Linear MCP create tool if available, otherwise use the GraphQL `issueCreate` mutation:
+
+```graphql
+mutation CreateIssue($teamId: String!, $title: String!, $description: String!) {
+  issueCreate(input: {
+    teamId: $teamId
+    title: $title
+    description: $description
+  }) {
+    success
+    issue {
+      identifier
+      url
+    }
+  }
+}
+```
+
+**Note:** `teamId` is required by Linear. If not available in context, ask the user for their Linear team ID before creating the story.
+
+### Description format
+
+Construct the description as:
+
+```
+## Original Request
+{originalRequest}
+
+---
+
+## Story
+
+{description}
+
+**Repo to modify:** {repoToModify}
+
+**Repos to reference:** {reposToReference joined with ", " or "(none)" if empty}
+
+**Acceptance Criteria**
+- [ ] {ac item 1}
+- [ ] {ac item 2}
+...
+
+**Testing Instructions**
+1. {step 1}
+2. {step 2}
+...
+```
+
+Return: the created issue identifier (e.g., `LIN-42`) and URL for confirmation.
