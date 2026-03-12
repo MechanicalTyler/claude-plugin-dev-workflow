@@ -6,13 +6,15 @@ Configuration keys (from `~/.claude/dev-workflow/config.json` → `adapters.obsi
 
 ## Spec path
 
+> **Story ID:** Use the story ID exactly as passed in (e.g., `sc-12345`, `LIN-42`, `PROJ-99`). Never strip or add a prefix — the caller is responsible for passing the full ID.
+
 ```
 {vault_path}/{prompts_dir}/{story-id}/{service-name}.md
 ```
 
-Example: for story 12345 in service `api-server`:
+Example: for story ID `sc-12345` passed in, service `api-server`:
 ```
-/Users/you/Documents/Obsidian/MyVault/Engineering/Prompts/12345/api-server.md
+/Users/you/Documents/Obsidian/MyVault/Engineering/Prompts/sc-12345/api-server.md
 ```
 
 ## Service name detection
@@ -36,6 +38,8 @@ Follow these steps in order:
 
 ## Write spec
 
+Use the story ID exactly as passed in — do not strip or add any prefix.
+
 1. Create the parent directory if it doesn't exist:
    ```bash
    mkdir -p {vault_path}/{prompts_dir}/{story-id}
@@ -46,7 +50,7 @@ Follow these steps in order:
 
 The same story can have different specs for different services. Each lives in its own file:
 ```
-12345/
+sc-12345/
   api-server.md
   web-frontend.md
   worker.md

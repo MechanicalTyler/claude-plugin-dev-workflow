@@ -41,6 +41,10 @@ Format: `Linear Issue: LIN-XXX`
 
 Include this in the PR body so reviewers can find the original requirements.
 
+## Story reference in notes Adapter
+
+Format: `LIN-XXX` (or team-prefixed `TEAM-XXX` — use the same format that was passed in)
+
 ## Create Story
 
 Use the Linear MCP create tool if available, otherwise use the GraphQL `issueCreate` mutation:

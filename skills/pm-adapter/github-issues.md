@@ -37,6 +37,10 @@ Or: `Issue: #XXX` (if you don't want auto-close)
 
 Include this in the PR body so reviewers can find the original requirements.
 
+## Story reference in notes Adapter
+
+Format: `#XXX` — use the hash-prefixed issue number (e.g., `#123`)
+
 ## Create Story
 
 Use the `gh` CLI to create a new issue. Write the body to a temp file first to avoid shell interpolation issues with multi-line markdown:
