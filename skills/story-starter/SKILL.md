@@ -36,7 +36,7 @@ No required arguments. Optional: a brief feature description as a starting promp
 2. Note the `pm_adapter` value
 3. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md`
 4. If neither exists: STOP — "PM adapter '{name}' not found. Check ~/.claude/dev-workflow/config.json and ensure the adapter file exists."
-5. Confirm the adapter implements **Create Story** (capability #5). If not: STOP — "This PM adapter does not support Create Story. Please update ~/.claude/skills/pm-adapter/{name}.md with a Create Story section."
+5. Confirm the adapter implements **Create Story** (capability #5) by checking for a `## Create Story` heading in the loaded adapter file. If not found: STOP — "This PM adapter does not support Create Story. Please update ~/.claude/skills/pm-adapter/{name}.md with a Create Story section."
 6. Check whether the loaded adapter has pre-flight requirements (e.g., Linear requires `teamId`, Jira requires `PROJECT_KEY` if not yet established in session). Surface any such requirements to the user **before** starting the interview in Phase 3, so they don't interrupt Phase 7.
 
 ---
@@ -44,8 +44,10 @@ No required arguments. Optional: a brief feature description as a starting promp
 ## Phase 2: Investigate Repos
 
 1. Determine the workspace root — use the current working directory
-2. Find all subdirectories in the workspace that contain a `.git` directory:
-   - Use Glob to find `{workspace}/*/.git` — each parent is a repo
+2. Find all repos in or below the workspace:
+   - First check if CWD itself is a repo: look for `.git` at the workspace root
+   - Then use Glob to find `{workspace}/*/.git` — each parent is a repo
+   - Deduplicate results
 3. For each repo found, build a **repo brief** by reading (skip if file absent):
    - `README.md` — top-level summary
    - `CLAUDE.md` — agent instructions and tech context
@@ -81,8 +83,11 @@ Field derivation rules:
 - `reposToReference`: infer from repo briefs (repos that provide context without being modified) — **never ask**
 - `acceptanceCriteria`: derive from repo patterns and feature description — **never ask** (infer up to 5 items)
 - `testingInstructions`: derive from repo patterns — **never ask** (infer up to 3 steps)
+- `story_type`: infer from context — "feature" for new capabilities, "bug" for fixes, "chore" for maintenance — **never ask**
 
 Use the `AskUserQuestion` tool for any clarifying questions. **Stop asking after 2 questions maximum** — draft regardless of remaining ambiguity, labeling uncertain fields as [Inference].
+
+**Note:** The initial "What feature would you like to build?" prompt in Phase 3 does **not** count against the 2-question limit. The limit applies only to clarifying questions asked during Phase 4.
 
 ---
 
@@ -139,7 +144,7 @@ Ask the user:
 > "Type **yes** to submit this story to {pm_adapter}, or describe what to change."
 
 - If user says "yes" (case-insensitive): proceed to Phase 7
-- If user provides feedback: incorporate the feedback, return to Phase 5 and re-emit an updated draft
+- If user provides feedback: incorporate the feedback, return to Phase 5 and re-emit an updated draft. After 3 revision cycles without approval, suggest the user cancel and restart with a clearer description.
 - If user says "stop", "quit", "cancel", or "exit": STOP — "Story creation cancelled."
 
 ---
