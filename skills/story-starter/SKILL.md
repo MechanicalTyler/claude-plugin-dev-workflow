@@ -41,7 +41,7 @@ No required arguments. Optional: a brief feature description as a starting promp
 
 ---
 
-## Phase 2: Investigate Repos
+## Phase 2: Load Repo Context
 
 1. Determine the workspace root — use the current working directory
 2. Find all repos in or below the workspace:
