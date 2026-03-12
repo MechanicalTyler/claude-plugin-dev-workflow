@@ -41,24 +41,22 @@ No required arguments. Optional: a brief feature description as a starting promp
 
 ---
 
-## Phase 2: Investigate Repos
+## Phase 2: Load Repo Context
 
 1. Determine the workspace root — use the current working directory
 2. Find all repos in or below the workspace:
    - First check if CWD itself is a repo: look for `.git` at the workspace root
    - Then use Glob to find `{workspace}/*/.git` — each parent is a repo
    - Deduplicate results
-3. For each repo found, build a **repo brief** by reading (skip if file absent):
-   - `README.md` — top-level summary
-   - `CLAUDE.md` — agent instructions and tech context
-   - Package manifest: `package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml` (first found)
-   - List of top-level directories for entry point hints
-4. Compile repo briefs as structured summaries:
+3. For each repo found, read `CLAUDE.md` from the repo root:
+   - If `CLAUDE.md` exists: use its content as the repo context
+   - If `CLAUDE.md` is absent: note a warning — "⚠️ No CLAUDE.md found for {repo-name} — skipping context for this repo" — and continue
+4. Compile repo briefs using the CLAUDE.md content:
    ```
-   **{repo-name}**: {one-sentence description from README or CLAUDE.md}
-   Stack: {languages/frameworks from manifest}
-   Key dirs: {top-level directories}
+   **{repo-name}**:
+   {CLAUDE.md content}
    ```
+   Repos for which no CLAUDE.md was found are omitted from the briefs.
 5. If no repos found: note this — Phase 3 will prompt the user for context
 
 ---
