@@ -6,13 +6,13 @@ Configuration keys (from `~/.claude/dev-workflow/config.json` → `adapters.obsi
 
 ## Spec path
 
-> **Story ID normalization:** The story ID must always include the `sc-` prefix. If a bare numeric ID is received (e.g., `12345`), prepend `sc-` to form `sc-12345` before constructing any path.
+> **Story ID:** Use the story ID exactly as passed in (e.g., `sc-12345`, `LIN-42`, `PROJ-99`). Never strip or add a prefix — the caller is responsible for passing the full ID.
 
 ```
 {vault_path}/{prompts_dir}/{story-id}/{service-name}.md
 ```
 
-Example: for story `sc-12345` in service `api-server`:
+Example: for story ID `sc-12345` passed in, service `api-server`:
 ```
 /Users/you/Documents/Obsidian/MyVault/Engineering/Prompts/sc-12345/api-server.md
 ```
@@ -38,7 +38,7 @@ Follow these steps in order:
 
 ## Write spec
 
-Normalize `{story-id}` to `sc-XXXXX` format before constructing any path (see normalization rule above).
+Use the story ID exactly as passed in — do not strip or add any prefix.
 
 1. Create the parent directory if it doesn't exist:
    ```bash
