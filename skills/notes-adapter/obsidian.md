@@ -38,6 +38,8 @@ Follow these steps in order:
 
 ## Write spec
 
+Normalize `{story-id}` to `sc-XXXXX` format before constructing any path (see normalization rule above).
+
 1. Create the parent directory if it doesn't exist:
    ```bash
    mkdir -p {vault_path}/{prompts_dir}/{story-id}
