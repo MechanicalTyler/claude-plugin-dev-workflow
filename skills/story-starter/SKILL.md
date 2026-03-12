@@ -48,11 +48,9 @@ No required arguments. Optional: a brief feature description as a starting promp
    - First check if CWD itself is a repo: look for `.git` at the workspace root
    - Then use Glob to find `{workspace}/*/.git` — each parent is a repo
    - Deduplicate results
-3. For each repo found, build a **repo brief** by reading (skip if file absent):
-   - `README.md` — top-level summary
-   - `CLAUDE.md` — agent instructions and tech context
-   - Package manifest: `package.json`, `Cargo.toml`, `go.mod`, `pyproject.toml` (first found)
-   - List of top-level directories for entry point hints
+3. For each repo found, read `CLAUDE.md` from the repo root:
+   - If `CLAUDE.md` exists: use its content as the repo context
+   - If `CLAUDE.md` is absent: note a warning — "⚠️ No CLAUDE.md found for {repo-name} — skipping context for this repo" — and continue
 4. Compile repo briefs as structured summaries:
    ```
    **{repo-name}**: {one-sentence description from README or CLAUDE.md}
