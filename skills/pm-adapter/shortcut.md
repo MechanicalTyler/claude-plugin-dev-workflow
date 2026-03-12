@@ -1,6 +1,6 @@
 # PM Adapter: Shortcut
 
-Story ID format: `sc-XXXXX` or numeric `XXXXX` (strip "sc-" prefix before MCP calls)
+Story ID format: `sc-XXXXX` or numeric `XXXXX` (strip "sc-" prefix before MCP calls). Prefer `sc-XXXXX` any time `XXXXX` is not explicitly required.
 
 ## Fetch Story
 
@@ -23,6 +23,10 @@ MCP tool: `mcp__shortcut__stories-update` with story_id (numeric) and fields obj
 Format: `Shortcut Story: sc-XXXXX`
 
 Include this in the PR body so reviewers can find the original requirements.
+
+## Story reference in notes Adapter
+
+Format: `sc-XXXXX`
 
 ## Create Story
 
