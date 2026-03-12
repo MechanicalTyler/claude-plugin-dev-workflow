@@ -51,12 +51,12 @@ No required arguments. Optional: a brief feature description as a starting promp
 3. For each repo found, read `CLAUDE.md` from the repo root:
    - If `CLAUDE.md` exists: use its content as the repo context
    - If `CLAUDE.md` is absent: note a warning — "⚠️ No CLAUDE.md found for {repo-name} — skipping context for this repo" — and continue
-4. Compile repo briefs as structured summaries:
+4. Compile repo briefs using the CLAUDE.md content:
    ```
-   **{repo-name}**: {one-sentence description from README or CLAUDE.md}
-   Stack: {languages/frameworks from manifest}
-   Key dirs: {top-level directories}
+   **{repo-name}**:
+   {CLAUDE.md content}
    ```
+   Repos for which no CLAUDE.md was found are omitted from the briefs.
 5. If no repos found: note this — Phase 3 will prompt the user for context
 
 ---
