@@ -6,13 +6,15 @@ Configuration keys (from `~/.claude/dev-workflow/config.json` → `adapters.obsi
 
 ## Spec path
 
+> **Story ID normalization:** The story ID must always include the `sc-` prefix. If a bare numeric ID is received (e.g., `12345`), prepend `sc-` to form `sc-12345` before constructing any path.
+
 ```
 {vault_path}/{prompts_dir}/{story-id}/{service-name}.md
 ```
 
-Example: for story 12345 in service `api-server`:
+Example: for story `sc-12345` in service `api-server`:
 ```
-/Users/you/Documents/Obsidian/MyVault/Engineering/Prompts/12345/api-server.md
+/Users/you/Documents/Obsidian/MyVault/Engineering/Prompts/sc-12345/api-server.md
 ```
 
 ## Service name detection
@@ -46,7 +48,7 @@ Follow these steps in order:
 
 The same story can have different specs for different services. Each lives in its own file:
 ```
-12345/
+sc-12345/
   api-server.md
   web-frontend.md
   worker.md
