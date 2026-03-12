@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: "Perform comprehensive PR review comparing implementation against story requirements. Use when /start reviewer is invoked with a PR number."
+description: "Comprehensive multi-perspective PR review (Product Manager, Developer, QA, and Architect lenses) that compares implementation against story requirements and CI/CD results. Use when /start reviewer is invoked with a PR number. Includes automatic first-review vs re-review mode detection. Always use this when a user asks to review a PR, check a pull request, or validate an implementation against requirements."
 ---
 
 # Reviewer
@@ -45,12 +45,14 @@ To avoid triggering unnecessary approval prompts:
 
 ---
 
+> **Note:** In all bash examples below, `{PR_NUMBER}` is a placeholder. Replace it with the actual PR number from `$ARGUMENTS` in every command you run.
+
 ## Phase 1: Load PR Details
 
 Get PR details using the actual PR number from arguments:
 
 ```bash
-gh pr view 42 --json body,headRefName,number,title,isDraft
+gh pr view {PR_NUMBER} --json body,headRefName,number,title,isDraft
 ```
 
 - Verify PR exists and is not draft
@@ -63,7 +65,7 @@ gh pr view 42 --json body,headRefName,number,title,isDraft
 Fetch all existing reviews on this PR. Use the actual PR number from arguments.
 
 ```bash
-gh pr reviews 42 --json author,state,body,submittedAt
+gh pr reviews {PR_NUMBER} --json author,state,body,submittedAt
 ```
 
 **Decision logic:**
@@ -114,7 +116,7 @@ Also check PR title if not found in body.
 First get the branch name for this PR:
 
 ```bash
-gh pr view 42 --json headRefName -q .headRefName
+gh pr view {PR_NUMBER} --json headRefName -q .headRefName
 ```
 
 Then list CI runs using the branch name from the output above:
@@ -141,13 +143,13 @@ If any check fails:
 Get the list of changed files:
 
 ```bash
-gh pr view 42 --json files
+gh pr view {PR_NUMBER} --json files
 ```
 
 Get the full diff:
 
 ```bash
-gh pr diff 42
+gh pr diff {PR_NUMBER}
 ```
 
 Analyze all file changes and understand the scope of modifications.
@@ -327,5 +329,5 @@ Submit formal GitHub review with decision:
 Use the actual PR number:
 
 ```bash
-gh pr review 42 --approve --body "..."
+gh pr review {PR_NUMBER} --approve --body "..."
 ```

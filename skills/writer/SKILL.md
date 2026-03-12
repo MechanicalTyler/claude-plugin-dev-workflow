@@ -1,6 +1,6 @@
 ---
 name: writer
-description: "Transform a story into a comprehensive Claude Instructions implementation spec. Use when /start writer is invoked with a story ID."
+description: "Transform a PM story into a comprehensive Claude Instructions implementation spec that guides developer implementation through structured phases — codebase investigation, multi-perspective analysis, technical decision documentation, and step-by-step implementation tasks. Use when /start writer is invoked with a story ID, or whenever a developer needs a detailed technical spec before coding. Always use this before /start developer when working from a PM story."
 ---
 
 # Writer

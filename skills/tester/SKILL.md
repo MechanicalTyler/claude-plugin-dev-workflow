@@ -1,6 +1,6 @@
 ---
 name: tester
-description: "Functional testing in dev environment with evidence-based validation. Use when /start tester is invoked with a PR number."
+description: "Evidence-based functional testing of PRs in a dev/test environment — deploys the branch, brainstorms and designs test scenarios, executes them with evidence collection, and submits a formal GitHub review. Use when /start tester is invoked with a PR number. Also use whenever a user wants to functionally test a feature branch, validate a PR in a dev environment, or run QA on a pull request before merging."
 ---
 
 # Tester
@@ -46,12 +46,14 @@ To avoid triggering unnecessary approval prompts:
 
 ---
 
+> **Note:** In all bash examples below, `{PR_NUMBER}` is a placeholder. Replace it with the actual PR number from `$ARGUMENTS` in every command you run.
+
 ## Phase 1: Load PR Details
 
 Get PR details using the actual PR number from arguments:
 
 ```bash
-gh pr view 42 --json number,title,body,headRefName
+gh pr view {PR_NUMBER} --json number,title,body,headRefName
 ```
 
 The `headRefName` field in the JSON output is the branch name — note it for use in subsequent commands.
@@ -236,15 +238,15 @@ If Phase 5 produced **3 or more independent test failures** across different sub
 ## Phase 7: Submit Review
 
 Submit formal GitHub review using the actual PR number:
-- **APPROVE** (`gh pr review 42 --approve`) if all tests pass
-- **REQUEST_CHANGES** (`gh pr review 42 --request-changes`) if any test fails
+- **APPROVE** (`gh pr review {PR_NUMBER} --approve`) if all tests pass
+- **REQUEST_CHANGES** (`gh pr review {PR_NUMBER} --request-changes`) if any test fails
 
 Include full test report in the review body.
 
 Optionally add labels to track testing status (use the actual PR number):
 ```bash
-gh pr edit 42 --add-label "tested-in-dev"
+gh pr edit {PR_NUMBER} --add-label "tested-in-dev"
 ```
 ```bash
-gh pr edit 42 --add-label "tests-failing"
+gh pr edit {PR_NUMBER} --add-label "tests-failing"
 ```

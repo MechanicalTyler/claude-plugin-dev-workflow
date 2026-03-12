@@ -1,6 +1,6 @@
 ---
 name: developer
-description: "Initialize development workflow rules and optionally load story context. Use when /start developer is invoked."
+description: "Full-stack development workflow with story context loading, TDD, automated planning, subagent execution, and PR creation. Use this skill whenever implementing features, fixing bugs, or any hands-on coding task — especially when /start developer is invoked. Always use this when a user says 'implement', 'build', 'code up', 'add feature', 'start dev', or provides a story ID to work from. Works with or without a PM story."
 ---
 
 # Developer
@@ -25,6 +25,28 @@ Read the CLAUDE.md file in this repository before starting.
 - **ALWAYS** start by checking out a new branch with prefix: `feature/`, `fix/`, or `chore/`
 - Branch names should be descriptive: `feature/slack-monitoring`, `fix/docker-permissions`, `chore/update-dependencies`
 - Check which branch you're on first. If not on `main`, you may already be on the correct branch — check if a PR is already open.
+
+---
+
+## No Story ID Path
+
+If **no story ID** was provided, work directly with the user to define and scope the task:
+
+1. **Understand the task** — If the request is vague or missing, use `AskUserQuestion` to clarify what needs to be built or changed.
+2. **Brainstorm requirements** — Before writing any code, invoke brainstorming to surface edge cases, scope, and approach:
+   > Invoke Skill: `superpowers:brainstorming`
+   >
+   > OVERRIDE: After brainstorming completes, do NOT invoke `superpowers:writing-plans` yet.
+   > Return here and proceed to step 3.
+3. **Plan implementation** — Invoke the planning skill:
+   > Invoke Skill: `superpowers:writing-plans`
+   >
+   > OVERRIDE: Save plan to `./.scratch/tmp/YYYY-MM-DD-plan.md`.
+   > Use the brainstorming output and user's description as the feature description input.
+4. **Implement** — Use the Development Standards below. Apply TDD for each distinct behavior.
+5. **Commit and PR** — Follow the Commit and PR Process below. Include a clear description of what was built and why.
+
+After planning, skip the "PM Context" and "Implementation Planning" sections — continue from **Development Standards**.
 
 ---
 
@@ -105,7 +127,7 @@ When creating the PR:
 - Title should be concise and descriptive
 - Body must include:
   - **Summary**: Brief description of changes
-  - **Story Reference**: Link using PM adapter's "Story Reference in PRs" format
+  - **Story Reference**: Link using PM adapter's "Story Reference in PRs" format (omit this section if there is no story ID)
   - **How to Test**: Testing steps from Claude Instructions if available, otherwise based on changes made
 - NO AI-generated boilerplate or mentions of AI tools
 
