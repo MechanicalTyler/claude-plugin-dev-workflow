@@ -16,6 +16,8 @@ Read `~/.claude/dev-workflow/config.json`. The `pm_adapter` field names which ad
 
 **4. Story ID in PRs** — each adapter specifies how to reference the story in PR descriptions
 
+**5. Create story** — given a story draft (title, description, story_type, repoToModify, reposToReference, acceptanceCriteria, testingInstructions, originalRequest), create a new story in the PM tool and return its ID and URL
+
 ## How to use
 
 1. Read config to get `pm_adapter` value
@@ -31,4 +33,4 @@ Place a file at `~/.claude/skills/pm-adapter/{name}.md` to create a custom adapt
 
 User adapters take precedence over plugin adapters with the same name. This allows you to override any built-in adapter or create one for an unsupported PM tool.
 
-Your adapter must implement the same interface: Fetch story, Post comment, Update story, Story reference format.
+Your adapter must implement the same interface: Fetch story, Post comment, Update story, Story reference format, Create story.
