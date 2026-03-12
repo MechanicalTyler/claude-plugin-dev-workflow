@@ -56,6 +56,10 @@ Format: `Jira Issue: {KEY}`
 
 Include this in the PR body so reviewers can find the original requirements.
 
+## Story reference in notes Adapter
+
+Format: `{KEY}` — use the full issue key as-is (e.g., `PROJ-123`, `ENG-456`)
+
 ## Create Story
 
 Use the `jira` CLI (Ankitpokhrel) to create a new issue. Write the body to a temp file first to avoid shell interpolation issues with multi-line markdown:
