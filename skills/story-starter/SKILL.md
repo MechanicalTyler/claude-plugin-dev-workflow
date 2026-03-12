@@ -37,6 +37,7 @@ No required arguments. Optional: a brief feature description as a starting promp
 3. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md`
 4. If neither exists: STOP — "PM adapter '{name}' not found. Check ~/.claude/dev-workflow/config.json and ensure the adapter file exists."
 5. Confirm the adapter implements **Create Story** (capability #5). If not: STOP — "This PM adapter does not support Create Story. Please update ~/.claude/skills/pm-adapter/{name}.md with a Create Story section."
+6. Check whether the loaded adapter has pre-flight requirements (e.g., Linear requires `teamId`, Jira requires `PROJECT_KEY` if not yet established in session). Surface any such requirements to the user **before** starting the interview in Phase 3, so they don't interrupt Phase 7.
 
 ---
 
@@ -104,7 +105,8 @@ Emit the draft as a fenced JSON block:
   "testingInstructions": [
     "Step 1: how to test (max 3 total)",
     "Step 2: verify expected behavior"
-  ]
+  ],
+  "story_type": "feature"
 }
 ```
 ~~~
