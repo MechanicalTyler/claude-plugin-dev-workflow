@@ -123,9 +123,15 @@ Internally hold the draft fields — do NOT emit any JSON or code block. Display
 
 ## Phase 6: Approval
 
-Use `AskUserQuestion` to ask the user:
+Use `AskUserQuestion` to ask the user. The `question` field **must include the full story draft** (same markdown rendered in Phase 5), followed by the approval prompt. This ensures the story content is visible regardless of how the question is routed or displayed. Format the question as:
 
-> "Type **yes** to submit this story to {pm_adapter}, or describe what to change."
+```
+{full story draft markdown, same as Phase 5 output}
+
+---
+
+Type **yes** to submit this story to {pm_adapter}, or describe what to change.
+```
 
 - If user says "yes" (case-insensitive): proceed to Phase 7
 - If user provides feedback: incorporate the feedback, return to Phase 5 and re-emit an updated draft. After 3 revision cycles without approval, suggest the user cancel and restart with a clearer description.
