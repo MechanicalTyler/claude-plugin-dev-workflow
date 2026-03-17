@@ -99,34 +99,13 @@ Use the `AskUserQuestion` tool for any clarifying questions. **Stop asking after
 
 ## Phase 5: Generate Story Draft
 
-Emit the draft as a fenced JSON block:
+Internally hold the draft fields — do NOT emit any JSON or code block. Display only the rendered markdown preview below (no code fences, no JSON):
 
-~~~
-```story-draft
-{
-  "title": "[repo-name] brief title describing the feature",
-  "description": "2-3 sentence description of what needs to be built and why",
-  "originalRequest": "verbatim user starter prompt",
-  "repoToModify": "repo-name",
-  "reposToReference": ["other-repo-1", "other-repo-2"],
-  "acceptanceCriteria": [
-    "First acceptance criterion (max 5 total)",
-    "Second acceptance criterion"
-  ],
-  "testingInstructions": [
-    "Step 1: how to test (max 3 total)",
-    "Step 2: verify expected behavior"
-  ],
-  "story_type": "feature"
-}
-```
-~~~
-
-Then display the draft in a readable format:
-
-```
+---
 **Title:** {title}
+
 **Description:** {description}
+
 **Repo to modify:** {repoToModify}
 **Repos to reference:** {reposToReference joined with ", " or "(none)"}
 
@@ -139,7 +118,6 @@ Then display the draft in a readable format:
 1. {step 1}
 2. {step 2}
 ...
-```
 
 ---
 
