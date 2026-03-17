@@ -123,7 +123,7 @@ Internally hold the draft fields — do NOT emit any JSON or code block. Display
 
 ## Phase 6: Approval
 
-Ask the user:
+Use `AskUserQuestion` to ask the user:
 
 > "Type **yes** to submit this story to {pm_adapter}, or describe what to change."
 
