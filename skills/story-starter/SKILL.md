@@ -33,10 +33,10 @@ No required arguments. Optional: a brief feature description as a starting promp
 ## Phase 0: Discover Repos & Load Context
 
 1. Determine the workspace root — use the current working directory
-2. Find all repos in or below the workspace:
-   - First check if CWD itself is a repo: look for `.git` at the workspace root
-   - Then use Glob to find `{workspace}/*/.git` — each parent is a repo
-   - Deduplicate results
+2. Find repos using two-path detection:
+   - Use the Bash tool to run: `git rev-parse --show-toplevel`
+   - **Path 1 — inside a repo:** If the output is a non-empty absolute path (e.g. `/workspace/my-service`), you are inside a git repo. Use that path as the single repo root. Skip all sub-folder scanning. Proceed to step 3 with this one repo.
+   - **Path 2 — parent folder:** If the output contains "not a git repository" or is empty, you are not inside a git repo. Use Glob to find `{CWD}/*/.git` (one level deep only). Each matching parent folder is a repo root. Proceed to step 3 with all discovered repos.
 3. For each repo found, determine the **service name** — the service name is identical to the folder name and repository name (e.g., repo at `/workspace/my-service` → service name is `my-service`)
 4. For each repo, read `CLAUDE.md` from the repo root:
    - If `CLAUDE.md` exists: extract the service purpose — look for a `## Project Overview` section first; if absent, use the first substantive paragraph (skip headings and blank lines)
