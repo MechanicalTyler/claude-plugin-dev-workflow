@@ -30,56 +30,54 @@ No required arguments. Optional: a brief feature description as a starting promp
 
 ---
 
-## Phase 0: Gather Story Description
-
-- If `$ARGUMENTS` is non-empty: use it as the story description and proceed to Phase 1
-- If `$ARGUMENTS` is empty: use `AskUserQuestion` to ask —
-  > "What story would you like to create?"
-  Then use the answer as the story description and proceed to Phase 1
-
----
-
-## Phase 1: Load Adapters
-
-1. Read `~/.claude/dev-workflow/config.json`
-2. Note the `pm_adapter` value
-3. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md`
-4. If neither exists: STOP — "PM adapter '{name}' not found. Check ~/.claude/dev-workflow/config.json and ensure the adapter file exists."
-5. Confirm the adapter implements **Create Story** (capability #5) by checking for a `## Create Story` heading in the loaded adapter file. If not found: STOP — "This PM adapter does not support Create Story. Please update ~/.claude/skills/pm-adapter/{name}.md with a Create Story section."
-6. Check whether the loaded adapter has pre-flight requirements (e.g., Linear requires `teamId`, Jira requires `PROJECT_KEY` if not yet established in session). Surface any such requirements to the user **before** starting the interview in Phase 3, so they don't interrupt Phase 7.
-
----
-
-## Phase 2: Load Repo Context
+## Phase 0: Discover Repos & Load Context
 
 1. Determine the workspace root — use the current working directory
 2. Find all repos in or below the workspace:
    - First check if CWD itself is a repo: look for `.git` at the workspace root
    - Then use Glob to find `{workspace}/*/.git` — each parent is a repo
    - Deduplicate results
-3. For each repo found, read `CLAUDE.md` from the repo root:
-   - If `CLAUDE.md` exists: use its content as the repo context
-   - If `CLAUDE.md` is absent: note a warning — "⚠️ No CLAUDE.md found for {repo-name} — skipping context for this repo" — and continue
-4. Compile repo briefs using the CLAUDE.md content:
+3. For each repo found, determine the **service name** — the service name is identical to the folder name and repository name (e.g., repo at `/workspace/my-service` → service name is `my-service`)
+4. For each repo, read `CLAUDE.md` from the repo root:
+   - If `CLAUDE.md` exists: extract the service purpose — look for a `## Project Overview` section first; if absent, use the first substantive paragraph (skip headings and blank lines)
+   - If `CLAUDE.md` is absent: note a warning — "⚠️ No CLAUDE.md found for {service-name} — skipping context for this service" — and continue
+5. Store each discovered service as in-session context with the structure:
+   - **service name**: the folder/repo name (identical)
+   - **purpose**: extracted from CLAUDE.md as described above
+   - **claude_md_path**: absolute path to the CLAUDE.md file
+6. Compile service briefs for use in the interview:
    ```
-   **{repo-name}**:
-   {CLAUDE.md content}
+   **{service-name}** ({claude_md_path}):
+   {purpose}
    ```
-   Repos for which no CLAUDE.md was found are omitted from the briefs.
-5. If no repos found: note this — Phase 3 will prompt the user for context
+   Services without a CLAUDE.md are omitted from the briefs.
+7. If no repos found: note this — Phase 3 will prompt the user for context if a target repo cannot be inferred
 
 ---
 
-## Phase 3: Initial Prompt Collection
+## Phase 1: Gather Story Description
 
-- Use the story description collected in Phase 0 as the initial feature description
-- If no repos were found in Phase 2: note this context so Phase 4 can ask the user to identify the target repo if needed
+- If `$ARGUMENTS` is non-empty: use it as the story description and proceed to Phase 2
+- If `$ARGUMENTS` is empty: use `AskUserQuestion` to ask —
+  > "What story would you like to create?"
+  Then use the answer as the story description and proceed to Phase 2
 
 ---
 
-## Phase 4: Interview (Max 2 Questions)
+## Phase 2: Load Adapters
 
-Using the repo briefs and initial prompt, attempt to populate all story draft fields.
+1. Read `~/.claude/dev-workflow/config.json`
+2. Note the `pm_adapter` value
+3. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md`
+4. If neither exists: STOP — "PM adapter '{name}' not found. Check ~/.claude/dev-workflow/config.json and ensure the adapter file exists."
+5. Confirm the adapter implements **Create Story** (capability #5) by checking for a `## Create Story` heading in the loaded adapter file. If not found: STOP — "This PM adapter does not support Create Story. Please update ~/.claude/skills/pm-adapter/{name}.md with a Create Story section."
+6. Check whether the loaded adapter has pre-flight requirements (e.g., Linear requires `teamId`, Jira requires `PROJECT_KEY` if not yet established in session). Surface any such requirements to the user **before** starting the interview in Phase 3, so they don't interrupt Phase 6.
+
+---
+
+## Phase 3: Interview (Max 2 Questions)
+
+Using the service briefs from Phase 0 and the story description from Phase 1, attempt to populate all story draft fields.
 
 Field derivation rules:
 - `title`: derive from the starter prompt — **never ask**
@@ -93,11 +91,11 @@ Field derivation rules:
 
 Use the `AskUserQuestion` tool for any clarifying questions. **Stop asking after 2 questions maximum** — draft regardless of remaining ambiguity, labeling uncertain fields as [Inference].
 
-**Note:** The initial "What feature would you like to build?" prompt in Phase 3 does **not** count against the 2-question limit. The limit applies only to clarifying questions asked during Phase 4.
+**Note:** The initial "What story would you like to create?" prompt in Phase 1 does **not** count against the 2-question limit. The limit applies only to clarifying questions asked during Phase 3.
 
 ---
 
-## Phase 5: Generate Story Draft
+## Phase 4: Generate Story Draft
 
 Internally hold the draft fields — do NOT emit any JSON or code block. Display only the rendered markdown preview below (no code fences, no JSON):
 
@@ -121,25 +119,25 @@ Internally hold the draft fields — do NOT emit any JSON or code block. Display
 
 ---
 
-## Phase 6: Approval
+## Phase 5: Approval
 
-Use `AskUserQuestion` to ask the user. The `question` field **must include the full story draft** (same markdown rendered in Phase 5), followed by the approval prompt. This ensures the story content is visible regardless of how the question is routed or displayed. Format the question as:
+Use `AskUserQuestion` to ask the user. The `question` field **must include the full story draft** (same markdown rendered in Phase 4), followed by the approval prompt. This ensures the story content is visible regardless of how the question is routed or displayed. Format the question as:
 
 ```
-{full story draft markdown, same as Phase 5 output}
+{full story draft markdown, same as Phase 4 output}
 
 ---
 
 Type **yes** to submit this story to {pm_adapter}, or describe what to change.
 ```
 
-- If user says "yes" (case-insensitive): proceed to Phase 7
-- If user provides feedback: incorporate the feedback, return to Phase 5 and re-emit an updated draft. After 3 revision cycles without approval, suggest the user cancel and restart with a clearer description.
+- If user says "yes" (case-insensitive): proceed to Phase 6
+- If user provides feedback: incorporate the feedback, return to Phase 4 and re-emit an updated draft. After 3 revision cycles without approval, suggest the user cancel and restart with a clearer description.
 - If user says "stop", "quit", "cancel", or "exit": STOP — "Story creation cancelled."
 
 ---
 
-## Phase 7: Create Story
+## Phase 6: Create Story
 
 Use the PM adapter's **Create Story** operation (capability #5) with all draft fields.
 
