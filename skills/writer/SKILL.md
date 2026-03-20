@@ -1,6 +1,6 @@
 ---
 name: writer
-description: "Transform a PM story into a comprehensive Claude Instructions implementation spec that guides developer implementation through structured phases — codebase investigation, multi-perspective analysis, technical decision documentation, and step-by-step implementation tasks. Use when /start writer is invoked with a story ID, or whenever a developer needs a detailed technical spec before coding. Always use this before /start developer when working from a PM story."
+description: "Transform a PM story into a comprehensive Claude Instructions implementation spec that guides developer implementation through structured phases — codebase investigation, multi-perspective analysis, technical decision documentation, and step-by-step implementation tasks. Use when a developer needs a detailed technical spec before coding, or when a user provides a story ID and asks for a spec, implementation plan, or Claude Instructions. Always use this before the Developer skill when working from a PM story."
 ---
 
 # Writer
@@ -11,23 +11,7 @@ description: "Transform a PM story into a comprehensive Claude Instructions impl
 
 Story ID is passed as the first argument (e.g., `sc-12345` or `12345`).
 
----
-
-## CRITICAL: Mandatory Rules
-
-### Reality Filter
-- Never present generated, inferred, speculated, or deduced content as fact
-- Label unverified content: [Inference] [Speculation] [Unverified]
-- Ask for clarification if information is missing. Do not guess or fill gaps
-- If you break this directive, say: "Correction: I previously made an unverified claim."
-
-### Communication Standards
-- **NO boilerplate** — Never include AI attribution in any output
-- Clear, professional communication focused on technical substance
-
-### Problem Solving
-- Never give up. If you have problems, ask for help
-- If unable to access a screenshot, mockup image, or attachment — STOP and ask the user for help. Do not proceed with incomplete data.
+Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
 
 ---
 
@@ -205,11 +189,3 @@ Confirm the spec was written and provide the path to the user.
 
 ---
 
-## File and Command Operations
-
-- **Use Write tool for files** — never use `cat` or `echo` with redirection
-- **Stay within repository** — do not `cd` outside the repository
-- **No shell variable assignments** — Never write `VAR=$(command)` or `VAR=value` at the start of a Bash call. Use each command's output directly in subsequent commands as a literal value.
-- **No comments before commands** — Never put `# comment` lines before or inside a Bash call. Remove all inline comments from shell commands.
-- **No multi-`$()` compositions** — Never build a single command from multiple `$()` substitutions. Run each sub-command separately and use its literal output value.
-- **One operation per call** — Each distinct shell operation should be its own Bash tool call.

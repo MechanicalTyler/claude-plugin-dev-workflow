@@ -1,6 +1,6 @@
 ---
 name: debugger
-description: "Three-mode unified skill for debugging bugs, standalone story implementation, and addressing PR review feedback (rework). Mode is auto-detected from arguments: no args = debug mode (investigate a reported bug), story-id only = development mode (implement a story), story-id + --rework = rework mode (address reviewer feedback). Use when /start debugger or /start rework is invoked, or whenever a bug needs systematic investigation, review changes need addressing, or a story needs implementing without the full developer workflow."
+description: "Three-mode unified skill for debugging bugs, standalone story implementation, and addressing PR review feedback (rework). Mode is auto-detected from arguments: no args = debug mode (investigate a reported bug), story-id only = development mode (implement a story), story-id + --rework = rework mode (address reviewer feedback). Use whenever a bug needs systematic investigation, review changes need addressing, or a story needs implementing without the full developer workflow."
 ---
 
 # Debugger / Developer / Rework
@@ -9,43 +9,14 @@ description: "Three-mode unified skill for debugging bugs, standalone story impl
 
 ## Arguments: $ARGUMENTS
 
+Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
+
 ## Mode Detection
 
 Parse arguments:
 - **Empty** → **Debugging mode** — wait for user to describe the bug
 - **Story ID only** (e.g., `sc-12345`) → **Development mode** — implement the story
 - **Story ID + `--rework`** (e.g., `sc-12345 --rework`) → **Rework mode** — address story comments
-
----
-
-## CRITICAL: Mandatory Rules
-
-### Reality Filter
-- Never present generated, inferred, speculated, or deduced content as fact
-- Label unverified content: [Inference] [Speculation] [Unverified]
-- Ask for clarification if information is missing. Do not guess or fill gaps
-
-### Development Standards
-1. **Test Driven Development** — write failing tests first, then implement
-2. **Respect existing architecture** — study codebase before making changes
-3. **No placeholder code** — implement full functionality; if unable, ask for help
-4. **For database changes** — update DAO, Entity classes, and Migrations
-5. **Test before completion** — all tests must pass before pushing
-
-### Commit and PR Process
-- **NEVER** commit to main; **NEVER** skip commit hooks
-- **NO boilerplate** — no AI attribution in commits, PRs, or comments
-- **Commit frequently**, **always push** when done
-- **Create PR** after implementation — clean, professional description
-
-### Bash Command Rules
-
-To avoid triggering unnecessary approval prompts:
-
-- **No shell variable assignments** — Never write `VAR=$(command)` or `VAR=value` at the start of a Bash call. Use each command's output directly in subsequent commands as a literal value.
-- **No comments before commands** — Never put `# comment` lines before or inside a Bash call. Remove all inline comments from shell commands.
-- **No multi-`$()` compositions** — Never build a single command from multiple `$()` substitutions. Run each sub-command separately and use its literal output value.
-- **One operation per call** — Each distinct shell operation should be its own Bash tool call.
 
 ---
 
@@ -127,7 +98,7 @@ Apply the full TDD cycle:
 1. Read `~/.claude/dev-workflow/config.json` for `pm_adapter` and `notes_adapter`
 2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story by ID
 3. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
-4. **If spec not found:** STOP and ask user to run `/start writer {story-id}` first
+4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:writer`) with this story ID first
 
 ### Step 1.5: Write Implementation Plan
 
@@ -274,8 +245,3 @@ PR body format:
 
 ---
 
-## File Operations
-
-- **Use Write tool for files** — never use `cat` or `echo` with redirection
-- **Stay within repository** — do not `cd` outside the project
-- **Never give up** when debugging. If stuck, ask for help.
