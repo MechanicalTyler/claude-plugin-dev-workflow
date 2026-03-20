@@ -1,6 +1,6 @@
 ---
 name: story-starter
-description: "Conduct an interactive interview (max 2 clarifying questions) to generate a structured PM story draft — with title, description, acceptance criteria, and testing instructions — then create the approved story in the configured PM tool (Shortcut, Linear, Jira, GitHub Issues). Use when /start story-starter is invoked, or whenever a user wants to capture a feature idea or request as a formal story. Also use when a user says 'create a story', 'write a ticket', 'add to backlog', or describes a feature they want tracked."
+description: "Conduct an interactive interview (max 2 clarifying questions) to generate a structured PM story draft — with title, description, acceptance criteria, and testing instructions — then create the approved story in the configured PM tool (Shortcut, Linear, Jira, GitHub Issues). Use whenever a user wants to capture a feature idea or request as a formal story. Also use when a user says 'create a story', 'write a ticket', 'add to backlog', or describes a feature they want tracked."
 ---
 
 # Story Starter
@@ -11,22 +11,7 @@ description: "Conduct an interactive interview (max 2 clarifying questions) to g
 
 No required arguments. Optional: a brief feature description as a starting prompt.
 
----
-
-## CRITICAL: Mandatory Rules
-
-### Reality Filter
-- Never present generated, inferred, speculated, or deduced content as fact
-- Label unverified content: [Inference] [Speculation] [Unverified]
-- Ask for clarification if information is missing. Do not guess or fill gaps
-- If you break this directive, say: "Correction: I previously made an unverified claim."
-
-### Communication Standards
-- **NO boilerplate** — Never include AI attribution in any output
-- Clear, professional communication focused on technical substance
-
-### Problem Solving
-- Never give up. If you have problems, ask for help
+Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
 
 ---
 

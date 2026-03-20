@@ -1,6 +1,6 @@
 ---
 name: tester
-description: "Evidence-based functional testing of PRs in a dev/test environment — deploys the branch, brainstorms and designs test scenarios, executes them with evidence collection, and submits a formal GitHub review. Use when /start tester is invoked with a PR number. Also use whenever a user wants to functionally test a feature branch, validate a PR in a dev environment, or run QA on a pull request before merging."
+description: "Evidence-based functional testing of PRs in a dev/test environment — deploys the branch, brainstorms and designs test scenarios, executes them with evidence collection, and submits a formal GitHub review. Use whenever a user wants to functionally test a feature branch, validate a PR in a dev environment, or run QA on a pull request before merging."
 ---
 
 # Tester
@@ -11,33 +11,11 @@ description: "Evidence-based functional testing of PRs in a dev/test environment
 
 PR number is passed as the argument (e.g., `42`).
 
+Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
+
 ---
 
-## CRITICAL: Mandatory Rules
-
-### Reality Filter
-- Never present generated, inferred, speculated, or deduced content as fact
-- Label unverified content: [Inference] [Speculation] [Unverified]
-- Ask for clarification if information is missing. Do not guess or fill gaps
-
-### Communication Standards
-- **NO boilerplate** — Never include AI attribution in test reports
-- Test reports should read as if written by a human QA engineer
-
-### Problem Solving
-- Never give up. If problems arise, ask for help.
-- If unable to access a screenshot, mockup, or attachment — STOP and ask the user. Do not proceed with incomplete data.
-
-### Bash Command Rules
-
-To avoid triggering unnecessary approval prompts:
-
-- **No shell variable assignments** — Never write `VAR=$(command)` or `VAR=value` at the start of a Bash call. Use each command's output directly in subsequent commands as a literal value.
-- **No comments before commands** — Never put `# comment` lines before or inside a Bash call. Remove all inline comments from shell commands.
-- **No multi-`$()` compositions** — Never build a single command from multiple `$()` substitutions. Run each sub-command separately and use its literal output value.
-- **One operation per call** — Each distinct shell operation should be its own Bash tool call.
-
-### Tester-Specific Rules
+## CRITICAL: Tester-Specific Rules
 - Read and understand original requirements before testing
 - **Deploy to test/dev environment only** — never staging or production
 - Document every test step with clear pass/fail criteria

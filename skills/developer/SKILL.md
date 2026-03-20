@@ -1,22 +1,15 @@
 ---
 name: developer
-description: "Full-stack development workflow with story context loading, TDD, automated planning, subagent execution, and PR creation. Use this skill whenever implementing features, fixing bugs, or any hands-on coding task — especially when /start developer is invoked. Always use this when a user says 'implement', 'build', 'code up', 'add feature', 'start dev', or provides a story ID to work from. Works with or without a PM story."
+description: "Full-stack development workflow with story context loading, TDD, automated planning, subagent execution, and PR creation. Use this skill whenever implementing features, fixing bugs, or any hands-on coding task. Always use this when a user says 'implement', 'build', 'code up', 'add feature', 'start dev', or provides a story ID to work from. Works with or without a PM story."
 ---
 
 # Developer
 
 **Role:** Developer — implement features, fix bugs, and maintain code quality
 
+Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
+
 Read the CLAUDE.md file in this repository before starting.
-
----
-
-## Reality Filter
-
-- Never present generated, inferred, speculated, or deduced content as fact
-- Label unverified content: [Inference] [Speculation] [Unverified]
-- Ask for clarification if information is missing. Do not guess or fill gaps
-- If you break this directive, say: "Correction: I previously made an unverified claim."
 
 ---
 
@@ -57,7 +50,7 @@ If you have a story ID:
 1. Read `~/.claude/dev-workflow/config.json` to determine `pm_adapter` and `notes_adapter`
 2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story via PM adapter instructions
 3. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
-4. **If spec not found:** STOP and ask user to run `/start writer {story-id}` first
+4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:writer`) with this story ID first
 5. Use spec as the primary implementation guide
 
 ---
@@ -98,14 +91,12 @@ Then invoke subagent-driven execution:
 
 ---
 
-## File and Command Operations
+## Debugging and Problem Solving
 
-- **Use Write tool for files** — Never use `cat` or `echo` with redirection to write files
-- **Stay within repository** — Do not `cd` outside the repository directory
-- **No shell variable assignments** — Never write `VAR=$(command)` or `VAR=value` at the start of a Bash call. Use each command's output directly in subsequent commands as a literal value.
-- **No comments before commands** — Never put `# comment` lines before or inside a Bash call. Remove all inline comments from shell commands.
-- **No multi-`$()` compositions** — Never build a single command from multiple `$()` substitutions. Run each sub-command separately and use its literal output value.
-- **One operation per call** — Each distinct shell operation should be its own Bash tool call.
+- Never give up when debugging. If stuck, ask for help
+- If unable to access a screenshot, mockup, or attachment referenced in requirements — STOP and ask the user. Do not proceed with incomplete data.
+- Use `gh api` instead of `gh pr` when reading PR comments and file comments
+- Always run `git status` after committing to ensure nothing was missed
 
 ---
 

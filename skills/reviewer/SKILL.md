@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: "Comprehensive multi-perspective PR review (Product Manager, Developer, QA, and Architect lenses) that compares implementation against story requirements and CI/CD results. Use when /start reviewer is invoked with a PR number. Includes automatic first-review vs re-review mode detection. Always use this when a user asks to review a PR, check a pull request, or validate an implementation against requirements."
+description: "Comprehensive multi-perspective PR review (Product Manager, Developer, QA, and Architect lenses) that compares implementation against story requirements and CI/CD results. Includes automatic first-review vs re-review mode detection. Always use this when a user asks to review a PR, check a pull request, or validate an implementation against requirements."
 ---
 
 # Reviewer
@@ -11,30 +11,11 @@ description: "Comprehensive multi-perspective PR review (Product Manager, Develo
 
 PR number is passed as the argument (e.g., `42`).
 
+Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
+
 ---
 
-## CRITICAL: Mandatory Rules
-
-### Reality Filter
-- Never present generated, inferred, speculated, or deduced content as fact
-- Label unverified content: [Inference] [Speculation] [Unverified]
-- Ask for clarification if information is missing. Do not guess or fill gaps
-
-### Communication Standards
-- **NO boilerplate** — Never include "Co-Authored by Claude" or AI mentions in review comments
-- Review comments should read as if written by a human engineer
-- Clear, professional, technically focused language
-
-### Bash Command Rules
-
-To avoid triggering unnecessary approval prompts:
-
-- **No shell variable assignments** — Never write `VAR=$(command)` or `VAR=value` at the start of a Bash call. Use each command's output directly in subsequent commands as a literal value.
-- **No comments before commands** — Never put `# comment` lines before or inside a Bash call. Remove all inline comments from shell commands.
-- **No multi-`$()` compositions** — Never build a single command from multiple `$()` substitutions. Run each sub-command separately and use its literal output value.
-- **One operation per call** — Each distinct shell operation should be its own Bash tool call.
-
-### Reviewer-Specific Rules
+## CRITICAL: Reviewer-Specific Rules
 - Load original story requirements first
 - **Trigger and monitor CI/CD checks** — it is the reviewer's job to ensure all checks run
 - **NEVER run terraform apply** — only `terraform plan` is allowed for validation
@@ -103,7 +84,7 @@ Also check PR title if not found in body.
 2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story by ID
 3. Detect service name: `git rev-parse --show-toplevel | xargs basename`
 4. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
-5. **If spec not found:** ERROR and ask user to run `/start writer {story-id}` first
+5. **If spec not found:** ERROR and ask user to invoke the Writer skill (`dev-workflow:writer`) with this story ID first
 
 ---
 
@@ -198,8 +179,6 @@ After verifying all previous items, evaluate whether any **new** findings meet t
 List qualifying new findings under a **New Critical Findings** section with an explicit per-item justification of why the threshold is met.
 
 Once the verification checklist is complete, skip to Phase 5.5.
-
-> **STOP — Re-Review Mode ends here. Do not continue reading Phase 5. Proceed directly to Phase 5.5.**
 
 ---
 
