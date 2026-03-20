@@ -1,11 +1,11 @@
 ---
-name: writer
-description: "Transform a PM story into a comprehensive Claude Instructions implementation spec that guides developer implementation through structured phases — codebase investigation, multi-perspective analysis, technical decision documentation, and step-by-step implementation tasks. Use when a developer needs a detailed technical spec before coding, or when a user provides a story ID and asks for a spec, implementation plan, or Claude Instructions. Always use this before the Developer skill when working from a PM story."
+name: write-spec
+description: "Transform a PM story into a comprehensive Claude Instructions implementation spec that guides developer implementation through structured phases — codebase investigation, multi-perspective analysis, technical decision documentation, and step-by-step implementation tasks. Use when a developer needs a detailed technical spec before coding, or when a user provides a story ID and asks for a spec, implementation plan, or Claude Instructions. Always use this before the Start Development skill when working from a PM story."
 ---
 
-# Writer
+# Write Spec
 
-**Role:** Writer — transform a story into a comprehensive Claude Instructions implementation spec
+**Role:** Write Spec — transform a story into a comprehensive Claude Instructions implementation spec
 
 ## Arguments: $ARGUMENTS
 

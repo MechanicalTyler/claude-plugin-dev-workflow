@@ -14,14 +14,15 @@ The superpowers plugin provides core methodology skills (TDD, systematic debuggi
 
 ## Roles
 
-| Command | Role | Purpose |
-|---------|------|---------|
-| `/start developer [story-id]` | Developer | Branch, implement with TDD, commit, create PR |
-| `/start writer story-id` | Writer | Fetch story → analyze codebase → write Claude Instructions spec |
-| `/start reviewer PR` | Reviewer | Multi-perspective PR review against story requirements |
-| `/start tester PR` | Tester | Functional testing with evidence gathering |
-| `/start debugger` | Debugger | Debug-first workflow (describe bug → investigate → TDD fix) |
-| `/start rework story-id` | Rework | Read story comments as rework items → fix → new PR |
+| Command | Skill | Purpose |
+|---------|-------|---------|
+| `/start start-development [story-id]` | start-development | Branch, implement with TDD, commit, create PR |
+| `/start write-spec story-id` | write-spec | Fetch story → analyze codebase → write Claude Instructions spec |
+| `/start review-pr PR` | review-pr | Multi-perspective PR review against story requirements |
+| `/start test-pr PR` | test-pr | Functional testing with evidence gathering |
+| `/start start-debugging` | start-debugging | Debug-first workflow (describe bug → investigate → TDD fix) |
+| `/start start-debugging story-id --rework` | start-debugging | Read story comments as rework items → fix → new PR |
+| `/start create-story` | create-story | Interview user → draft story → submit to PM tool |
 
 ## Configuration
 

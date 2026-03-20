@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**dev-workflow** is a Claude plugin (v1.5.4) that provides role-based development workflow orchestration with pluggable PM and notes adapters. It enables specialized agents (Developer, Writer, Reviewer, Tester, Debugger) to work through structured, quality-gated development stages.
+**dev-workflow** is a Claude plugin (v2.0.0) that provides action-based development workflow orchestration with pluggable PM and notes adapters. It enables specialized workflows (Start Development, Story to Spec, Review PR, Test PR, Start Debugging, Create Story) through structured, quality-gated stages.
 
 **Dependency:** Requires the `superpowers` plugin to be installed — it provides core methodology skills (TDD, debugging, brainstorming, subagent orchestration, verification).
 
@@ -12,16 +12,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Role Dispatcher Pattern
 
-The plugin routes through `commands/start.md` which dispatches to role-specific skills:
+Skills are invoked directly by name:
 
 | Command | Skill | Purpose |
 |---------|-------|---------|
-| `/start developer [story-id]` | `dev-workflow:developer` | Feature implementation with TDD |
-| `/start writer story-id` | `dev-workflow:writer` | Story → Claude Instructions spec |
-| `/start reviewer PR-number` | `dev-workflow:reviewer` | Multi-perspective PR review |
-| `/start tester PR-number` | `dev-workflow:tester` | Functional testing with evidence |
-| `/start debugger` | `dev-workflow:debugger` | Bug investigation |
-| `/start rework story-id` | `dev-workflow:debugger` (rework mode) | Address review feedback |
+| `/start start-development [story-id]` | `dev-workflow:start-development` | Feature implementation with TDD |
+| `/start write-spec story-id` | `dev-workflow:write-spec` | Story → Claude Instructions spec |
+| `/start review-pr PR-number` | `dev-workflow:review-pr` | Multi-perspective PR review |
+| `/start test-pr PR-number` | `dev-workflow:test-pr` | Functional testing with evidence |
+| `/start start-debugging` | `dev-workflow:start-debugging` | Bug investigation |
+| `/start start-debugging story-id --rework` | `dev-workflow:start-debugging` (rework mode) | Address review feedback |
+| `/start create-story` | `dev-workflow:create-story` | Interview user → draft → submit story |
 
 ### Adapter System
 
@@ -45,24 +46,25 @@ Skills invoke superpowers throughout their workflows:
 
 ## Key Design Decisions
 
-- **Reviewer skill has two modes:** First Review (exhaustive 4-perspective analysis) vs. Re-Review (verify previous `CHANGES_REQUESTED` items were addressed, new findings only if they meet the Critical Exception Threshold)
-- **Debugger skill is a unified 3-mode skill:** Debug mode (no args), Development mode (story-id), Rework mode (story-id + `--rework`)
+- **review-pr skill has two modes:** First Review (exhaustive 4-perspective analysis) vs. Re-Review (verify previous `CHANGES_REQUESTED` items were addressed, new findings only if they meet the Critical Exception Threshold)
+- **start-debugging skill is a unified 3-mode skill:** Debug mode (no args), Development mode (story-id), Rework mode (story-id + `--rework`)
 - **Reality Filter:** All skills enforce labeling unverified content as `[Inference]`, `[Speculation]`, or `[Unverified]`
 - **Config location:** User configuration lives at `~/.claude/dev-workflow/config.json`, not in the repo
 
 ## File Layout
 
 ```
-commands/           # Entry point commands (/start, /address-pr-comments)
 skills/
-  developer/        # Developer workflow (18 phases)
-  writer/           # Story-to-spec transformation
-  reviewer/         # Multi-perspective PR review with mode detection
-  tester/           # Evidence-based functional testing
-  debugger/         # Debug/dev/rework unified skill
-  pm-adapter/       # PM tool adapters + interface spec
-  notes-adapter/    # Notes storage adapters + interface spec
-.claude-plugin/     # Plugin manifest (plugin.json)
+  start-development/  # Full development workflow (TDD, subagents, PR)
+  write-spec/      # Story → Claude Instructions spec transformation
+  review-pr/          # Multi-perspective PR review with mode detection
+  test-pr/            # Evidence-based functional testing
+  start-debugging/    # Debug/dev/rework unified skill
+  create-story/       # Interactive interview → PM story creation
+  address-pr-comments/ # Address review feedback in current session
+  pm-adapter/         # PM tool adapters + interface spec
+  notes-adapter/      # Notes storage adapters + interface spec
+.claude-plugin/       # Plugin manifest (plugin.json)
 ```
 
 ## Working on This Codebase

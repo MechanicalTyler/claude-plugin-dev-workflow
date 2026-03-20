@@ -1,9 +1,9 @@
 ---
-name: debugger
+name: start-debugging
 description: "Three-mode unified skill for debugging bugs, standalone story implementation, and addressing PR review feedback (rework). Mode is auto-detected from arguments: no args = debug mode (investigate a reported bug), story-id only = development mode (implement a story), story-id + --rework = rework mode (address reviewer feedback). Use whenever a bug needs systematic investigation, review changes need addressing, or a story needs implementing without the full developer workflow."
 ---
 
-# Debugger / Developer / Rework
+# Start Debugging (Debug / Development / Rework)
 
 **Role:** Unified skill for debugging, development, and rework — mode detected from arguments
 
@@ -98,7 +98,7 @@ Apply the full TDD cycle:
 1. Read `~/.claude/dev-workflow/config.json` for `pm_adapter` and `notes_adapter`
 2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story by ID
 3. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
-4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:writer`) with this story ID first
+4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
 
 ### Step 1.5: Write Implementation Plan
 

@@ -1,11 +1,11 @@
 ---
-name: reviewer
+name: review-pr
 description: "Comprehensive multi-perspective PR review (Product Manager, Developer, QA, and Architect lenses) that compares implementation against story requirements and CI/CD results. Includes automatic first-review vs re-review mode detection. Always use this when a user asks to review a PR, check a pull request, or validate an implementation against requirements."
 ---
 
-# Reviewer
+# Review PR
 
-**Role:** Reviewer — comprehensive PR review comparing implementation against story requirements
+**Role:** Review PR — comprehensive PR review comparing implementation against story requirements
 
 ## Arguments: $ARGUMENTS
 
@@ -84,7 +84,7 @@ Also check PR title if not found in body.
 2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story by ID
 3. Detect service name: `git rev-parse --show-toplevel | xargs basename`
 4. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
-5. **If spec not found:** ERROR and ask user to invoke the Writer skill (`dev-workflow:writer`) with this story ID first
+5. **If spec not found:** ERROR and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
 
 ---
 
