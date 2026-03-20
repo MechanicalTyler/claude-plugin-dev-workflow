@@ -1,11 +1,11 @@
 ---
-name: story-starter
+name: create-story
 description: "Conduct an interactive interview (max 2 clarifying questions) to generate a structured PM story draft — with title, description, acceptance criteria, and testing instructions — then create the approved story in the configured PM tool (Shortcut, Linear, Jira, GitHub Issues). Use whenever a user wants to capture a feature idea or request as a formal story. Also use when a user says 'create a story', 'write a ticket', 'add to backlog', or describes a feature they want tracked."
 ---
 
-# Story Starter
+# Create Story
 
-**Role:** Story Starter — interview the user, generate a story draft, and submit it to the PM tool
+**Role:** Create Story — interview the user, generate a story draft, and submit it to the PM tool
 
 ## Arguments: $ARGUMENTS
 

@@ -1,9 +1,9 @@
 ---
-name: developer
+name: start-development
 description: "Full-stack development workflow with story context loading, TDD, automated planning, subagent execution, and PR creation. Use this skill whenever implementing features, fixing bugs, or any hands-on coding task. Always use this when a user says 'implement', 'build', 'code up', 'add feature', 'start dev', or provides a story ID to work from. Works with or without a PM story."
 ---
 
-# Developer
+# Start Development
 
 **Role:** Developer — implement features, fix bugs, and maintain code quality
 
@@ -50,7 +50,7 @@ If you have a story ID:
 1. Read `~/.claude/dev-workflow/config.json` to determine `pm_adapter` and `notes_adapter`
 2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story via PM adapter instructions
 3. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
-4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:writer`) with this story ID first
+4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
 5. Use spec as the primary implementation guide
 
 ---
