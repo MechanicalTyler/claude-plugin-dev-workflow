@@ -39,6 +39,17 @@ To avoid triggering unnecessary approval prompts:
 
 ---
 
+## Autonomy First
+
+Before asking the user ANYTHING, exhaust all available tools. Read relevant files thoroughly, explore the codebase with Glob/Grep, check git history, read existing tests and documentation. Make your best informed decision and label it `[Inference]` if uncertain.
+
+Questions are a last resort — only ask when **all** of these are true:
+- The answer cannot be found by reading the codebase, docs, or git history
+- Getting it wrong would produce a materially misleading result or require substantial rework
+- The decision is genuinely high-stakes (significantly impacts scope, architecture, or correctness)
+
+---
+
 ## Problem Solving
 
 - Never give up. If stuck, ask for help.

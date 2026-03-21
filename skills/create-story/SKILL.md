@@ -64,8 +64,6 @@ Read `skills/shared/standards.md` — these mandatory rules govern this entire s
 
 ## Phase 3: Autonomous Field Population (Max 2 Questions)
 
-**Autonomy first:** Before asking the user ANYTHING, exhaust all available tools. Read CLAUDE.md files, explore the codebase with Glob/Grep, check git history, read existing tests and documentation. Make your best informed decision and label it `[Inference]` if uncertain. Questions are a last resort — only ask when the answer genuinely cannot be inferred and getting it wrong would produce a misleading story.
-
 Using the service briefs from Phase 0 and the story description from Phase 1, attempt to populate all story draft fields:
 
 - `title`: derive from the starter prompt — **never ask**
