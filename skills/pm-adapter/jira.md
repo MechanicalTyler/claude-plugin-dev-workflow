@@ -52,9 +52,57 @@ jira issue move {KEY} "In Progress"
 
 ## Story Reference in PRs
 
-Format: `Jira Issue: {KEY}`
+**Native attachment:** Jira detects the issue key automatically from (requires the GitHub for Jira app installed):
+- Branch names containing `PROJ-###` anywhere (e.g., `feature/DEV-123-fix-login`, `DEV-123-fix-login`)
+- PR title containing `PROJ-###`
+- Commit messages containing `PROJ-###`
 
-Include this in the PR body so reviewers can find the original requirements.
+Any one of the above is sufficient to show the PR in the Jira issue's Development panel. No special delimiters or brackets needed — `PROJ-###` as a substring is detected.
+
+**Recommended:** Include the issue key in the branch name to trigger the native link automatically.
+
+**Fallback reference in PR body** (for reviewers without Jira access): `Jira Issue: {KEY}`
+
+## Finding PRs linked to a story
+
+**Option 1 — MCP (if `@aashari/mcp-server-atlassian-jira` is configured):**
+
+Two-step process using the generic `jira_get` tool:
+
+```
+# Step 1: get the numeric issue ID
+jira_get
+  path: /rest/api/3/issue/{KEY}
+  jq: .id
+```
+
+```
+# Step 2: fetch linked pull requests
+jira_get
+  path: /rest/dev-status/1.0/issue/detail
+  query-params: {"issueId": "{numeric-id}", "applicationType": "stash", "dataType": "pullrequest"}
+```
+
+Note: `applicationType` must be `"stash"` (legacy name used even for GitHub integrations).
+
+**Option 2 — Jira REST API directly:**
+
+```bash
+# Step 1: get the numeric issue ID
+ISSUE_ID=$(curl -su "user@example.com:$JIRA_API_TOKEN" \
+  "https://your-domain.atlassian.net/rest/api/3/issue/{KEY}" \
+  | jq -r '.id')
+
+# Step 2: fetch linked pull requests
+curl -su "user@example.com:$JIRA_API_TOKEN" \
+  "https://your-domain.atlassian.net/rest/dev-status/1.0/issue/detail?issueId=$ISSUE_ID&applicationType=stash&dataType=pullrequest" \
+  | jq '.detail[].pullRequests[]'
+```
+
+**Option 3 — GitHub search fallback:**
+```bash
+gh pr list --state all --search "{KEY}"
+```
 
 ## Story reference in notes Adapter
 

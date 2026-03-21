@@ -9,9 +9,26 @@ description: "Evidence-based functional testing of PRs in a dev/test environment
 
 ## Arguments: $ARGUMENTS
 
-PR number is passed as the argument (e.g., `42`).
+Either a PR number (e.g., `42`) or a PM ticket ID (e.g., `sc-123`) may be passed as the argument.
 
 Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
+
+---
+
+## Phase 0: Resolve Input to PR Number
+
+Parse the argument from `$ARGUMENTS`.
+
+**If the argument is purely numeric** → it is a PR number. Use it directly. Skip to Phase 1.
+
+**If the argument contains non-numeric characters** (e.g., `sc-123`, `LIN-456`) → treat it as a PM ticket ID and resolve it:
+
+1. Read `~/.claude/dev-workflow/config.json` to get `pm_adapter`
+2. Load PM adapter (user override first, then built-in)
+3. Use the adapter's **"Finding PRs linked to a story"** instructions to look up linked PRs — adapters with native API support (Shortcut, Jira, GitHub Issues) will return authoritative results; others fall back to `gh pr list --state all --search "{story_id}"`
+4. **If exactly one PR is found** → extract its number. Use it as the PR number for all subsequent phases.
+5. **If no PRs are found** → STOP: "No PR found referencing {story_id}. Ensure the PR is linked to the story in the format your PM adapter expects, then try again."
+6. **If multiple PRs are found** → list them (number, title, state) and ask the user: "Multiple PRs reference {story_id}. Which PR number should I test?"
 
 ---
 

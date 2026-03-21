@@ -37,9 +37,26 @@ Linear MCP update tool, or GraphQL mutation for state/label changes.
 
 ## Story Reference in PRs
 
-Format: `Linear Issue: LIN-XXX`
+**Native attachment:** Linear detects the issue identifier automatically from:
+- Branch names containing `TEAM-###` anywhere (e.g., `username/ENG-123-fix-login`, `ENG-123-fix-login`)
+- PR title containing `TEAM-###`
+- PR description containing `TEAM-###` (use a closing keyword to auto-transition on merge: `Fixes ENG-123`, `Closes ENG-123`, `Resolves ENG-123`)
+- Commit messages containing `TEAM-###`
 
-Include this in the PR body so reviewers can find the original requirements.
+**Note:** Detection does NOT apply to PR or issue comments — only titles, descriptions, branch names, and commit messages.
+
+**Recommended:** Use Linear's auto-generated branch names (`username/TEAM-###-short-title`) to trigger the native link. Add `Fixes TEAM-###` in the PR description to auto-close the issue on merge.
+
+**Fallback reference in PR body** (for reviewers without Linear access): `Linear Issue: TEAM-XXX`
+
+## Finding PRs linked to a story
+
+**MCP:** Linear's official MCP server (`mcp.linear.app/mcp`) does not expose a tool to list linked GitHub PRs. No MCP option available.
+
+**GitHub search (only option):**
+```bash
+gh pr list --state all --search "TEAM-{id}"
+```
 
 ## Story reference in notes Adapter
 

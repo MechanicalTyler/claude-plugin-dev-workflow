@@ -31,11 +31,48 @@ gh issue close {number}
 
 ## Story Reference in PRs
 
-Format: `Closes #XXX` (auto-closes issue on merge)
+**Native attachment:** GitHub detects issue references automatically from:
+- PR body (description) using a closing keyword: `Closes #N`, `Fixes #N`, `Resolves #N` (case-insensitive) — auto-closes the issue when the PR merges to the default branch
+- Commit messages using the same closing keywords
+- PR body with a plain mention `#N` (cross-references without auto-closing)
 
-Or: `Issue: #XXX` (if you don't want auto-close)
+**Note:** PR title alone does NOT trigger auto-close, though it creates a cross-reference visible in the issue timeline.
 
-Include this in the PR body so reviewers can find the original requirements.
+**Recommended:** Include `Closes #XXX` in the PR description to link natively and auto-close on merge.
+
+**Fallback reference** (no auto-close): `Issue: #XXX`
+
+## Finding PRs linked to a story
+
+**Option 1 — MCP (if `github/github-mcp-server` is configured):**
+
+```
+search_pull_requests
+  query: "repo:owner/repo closes:#{issue-number}"
+```
+
+Or to catch all keyword variants:
+```
+search_pull_requests
+  query: "repo:owner/repo #{issue-number}"
+```
+
+**Option 2 — `gh` CLI:**
+
+```bash
+# Find PRs linked via closing keywords (most reliable)
+gh pr list --state all --search "linked:{issue-number}"
+
+# Or search by keyword in body
+gh pr list --state all --search "closes #{issue-number} OR fixes #{issue-number}"
+```
+
+**Option 3 — Issue timeline API (finds all cross-references):**
+
+```bash
+gh api repos/OWNER/REPO/issues/{issue-number}/timeline --paginate \
+  --jq '.[] | select(.event == "cross-referenced") | select(.source.type == "pull_request") | .source.issue.number'
+```
 
 ## Story reference in notes Adapter
 

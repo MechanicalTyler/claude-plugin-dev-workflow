@@ -20,9 +20,42 @@ MCP tool: `mcp__shortcut__stories-update` with story_id (numeric) and fields obj
 
 ## Story Reference in PRs
 
-Format: `Shortcut Story: sc-XXXXX`
+**Native attachment:** Shortcut detects the story ID automatically from:
+- Branch names containing `sc-###` separated by `/` or `-` (e.g., `feature/sc-123-add-login`, `sc-123-add-login`)
+- PR title containing `[sc-###]`
+- PR body containing `[sc-###]`
+- Commit messages containing `[sc-###]`
 
-Include this in the PR body so reviewers can find the original requirements.
+When a branch with the story ID is pushed and a PR is opened, Shortcut links the PR to the story automatically — no manual text in the PR body is required.
+
+**Recommended:** Name branches as `username/sc-###/description` or `sc-###-description` to trigger the native link.
+
+**Fallback reference in PR body** (for reviewers without Shortcut access): `Shortcut Story: sc-XXXXX`
+
+## Finding PRs linked to a story
+
+**Option 1 — MCP (preferred if Shortcut MCP is configured):**
+
+```
+mcp__shortcut__stories-get-by-id
+  storyPublicId: {numeric-id}
+  full: true
+```
+
+The response includes a `pull_requests` array with PR data (title, URL, status, draft, merged) and a `branches` array with linked branches.
+
+**Option 2 — Shortcut REST API:**
+
+```bash
+curl -H "Shortcut-Token: $SHORTCUT_API_TOKEN" \
+  "https://api.app.shortcut.com/api/v3/stories/{numeric-id}" \
+  | jq '.pull_requests[]'
+```
+
+**Option 3 — GitHub search fallback:**
+```bash
+gh pr list --state all --search "sc-{id}"
+```
 
 ## Story reference in notes Adapter
 
