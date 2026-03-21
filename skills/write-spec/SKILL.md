@@ -1,11 +1,13 @@
 ---
 name: write-spec
-description: "Transform a PM story into a comprehensive Claude Instructions implementation spec that guides developer implementation through structured phases — codebase investigation, multi-perspective analysis, technical decision documentation, and step-by-step implementation tasks. Use when a developer needs a detailed technical spec before coding, or when a user provides a story ID and asks for a spec, implementation plan, or Claude Instructions. Always use this before the Start Development skill when working from a PM story."
+description: "Use when a developer needs a detailed technical spec before coding, when a user provides a story ID and asks for a spec, implementation plan, or Claude Instructions, or always before the Start Development skill when working from a PM story."
 ---
 
 # Write Spec
 
 **Role:** Write Spec — transform a story into a comprehensive Claude Instructions implementation spec
+
+**SCOPE BOUNDARY:** This skill writes a spec file and NOTHING else. It does **not** write code, write any other local files, make commits, checkout git branches, implement features, or begin development. When the spec file is saved, output the path and STOP.
 
 ## Arguments: $ARGUMENTS
 
@@ -78,19 +80,22 @@ Before the ULTRATHINK deep-dive, invoke brainstorming to surface unclear require
 
 ## Phase 4: Research & Decision Making
 
+**Autonomy first:** Before asking the user ANYTHING, exhaust all available tools. Read implementation files thoroughly (not just locate them), check git history for prior decisions, read tests to understand expected behavior, search for similar features in the codebase. Make your best informed decision and document it clearly. Questions are a last resort.
+
 For each significant technical decision:
 
 1. **List research questions** — codebase questions, technical questions, integration questions
-2. **Investigate codebase deeply** — read implementation files, don't just list them
+2. **Investigate codebase deeply** — read implementation files, don't just list them; trace call paths, read tests, check git blame for intent
 3. **Research best practices** if applicable — compare approaches with pros/cons
-4. **Make autonomous decisions** when:
+4. **Make autonomous decisions** — default to deciding. You should make decisions in the vast majority of cases:
    - Existing codebase pattern is clear → follow the established pattern
    - One approach is significantly simpler → choose simplicity (YAGNI)
    - Research shows clear best practice → follow it
-5. **Use AskUserQuestion when:**
-   - Business requirement is genuinely ambiguous
-   - Decision significantly impacts cost/timeline/architecture
-   - User preference genuinely needed for subjective choice
+   - Ambiguous but not high-stakes → pick the most reasonable option, document the trade-off, and move on
+5. **Use AskUserQuestion ONLY when ALL of these are true:**
+   - The answer cannot be found by reading the codebase, docs, or git history
+   - The decision is genuinely high-stakes (significantly impacts cost, timeline, or architecture)
+   - Getting it wrong would require substantial rework — not just a minor tweak
 
 Document decisions using this format:
 ```
