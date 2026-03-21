@@ -52,9 +52,37 @@ jira issue move {KEY} "In Progress"
 
 ## Story Reference in PRs
 
-Format: `Jira Issue: {KEY}`
+**Native attachment:** Jira detects the issue key automatically from (requires the GitHub for Jira app installed):
+- Branch names containing `PROJ-###` anywhere (e.g., `feature/DEV-123-fix-login`, `DEV-123-fix-login`)
+- PR title containing `PROJ-###`
+- Commit messages containing `PROJ-###`
 
-Include this in the PR body so reviewers can find the original requirements.
+Any one of the above is sufficient to show the PR in the Jira issue's Development panel. No special delimiters or brackets needed — `PROJ-###` as a substring is detected.
+
+**Recommended:** Include the issue key in the branch name to trigger the native link automatically.
+
+**Fallback reference in PR body** (for reviewers without Jira access): `Jira Issue: {KEY}`
+
+## Finding PRs linked to a story
+
+The Jira dev-status API returns linked PRs (requires Jira API token):
+
+```bash
+# Step 1: get the numeric issue ID
+ISSUE_ID=$(curl -su "user@example.com:$JIRA_API_TOKEN" \
+  "https://your-domain.atlassian.net/rest/api/3/issue/{KEY}" \
+  | jq -r '.id')
+
+# Step 2: fetch linked pull requests
+curl -su "user@example.com:$JIRA_API_TOKEN" \
+  "https://your-domain.atlassian.net/rest/dev-status/latest/issue/detail?issueId=$ISSUE_ID&applicationType=GitHub&dataType=pullrequest" \
+  | jq '.detail[].pullRequests[]'
+```
+
+Or as a fallback, search GitHub:
+```bash
+gh pr list --state all --search "{KEY}"
+```
 
 ## Story reference in notes Adapter
 
