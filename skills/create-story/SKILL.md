@@ -1,11 +1,13 @@
 ---
 name: create-story
-description: "Conduct an interactive interview (max 2 clarifying questions) to generate a structured PM story draft — with title, description, acceptance criteria, and testing instructions — then create the approved story in the configured PM tool (Shortcut, Linear, Jira, GitHub Issues). Use whenever a user wants to capture a feature idea or request as a formal story. Also use when a user says 'create a story', 'write a ticket', 'add to backlog', or describes a feature they want tracked."
+description: "Use when a user wants to capture a feature idea as a formal story, create a ticket, write to the backlog, or says 'create a story', 'write a ticket', 'add to backlog', or describes a feature they want tracked."
 ---
 
 # Create Story
 
-**Role:** Create Story — interview the user, generate a story draft, and submit it to the PM tool
+**Role:** Create Story — gather context, generate a story draft, and submit it to the PM tool
+
+**SCOPE BOUNDARY:** This skill creates a PM story and NOTHING else. It does **not** write code, write local files, make commits, checkout git branches, implement features, or start development. When the story is submitted, output the story URL and STOP.
 
 ## Arguments: $ARGUMENTS
 
@@ -60,21 +62,22 @@ Read `skills/shared/standards.md` — these mandatory rules govern this entire s
 
 ---
 
-## Phase 3: Interview (Max 2 Questions)
+## Phase 3: Autonomous Field Population (Max 2 Questions)
 
-Using the service briefs from Phase 0 and the story description from Phase 1, attempt to populate all story draft fields.
+**Autonomy first:** Before asking the user ANYTHING, exhaust all available tools. Read CLAUDE.md files, explore the codebase with Glob/Grep, check git history, read existing tests and documentation. Make your best informed decision and label it `[Inference]` if uncertain. Questions are a last resort — only ask when the answer genuinely cannot be inferred and getting it wrong would produce a misleading story.
 
-Field derivation rules:
+Using the service briefs from Phase 0 and the story description from Phase 1, attempt to populate all story draft fields:
+
 - `title`: derive from the starter prompt — **never ask**
 - `originalRequest`: verbatim user starter prompt — **never ask**
-- `description`: summarize from starter prompt — ask only if the request is genuinely too vague to understand
-- `repoToModify`: match to the most relevant repo brief — ask only if no repo clearly fits or there are no repos
+- `description`: summarize from starter prompt; explore codebase for context if vague — ask only if the request is genuinely too vague to understand after investigation
+- `repoToModify`: match to the most relevant repo brief — explore code if unclear; ask only if no repo clearly fits after investigation and there are no repos
 - `reposToReference`: infer from repo briefs (repos that provide context without being modified) — **never ask**
-- `acceptanceCriteria`: derive from repo patterns and feature description — **never ask** (infer up to 5 items)
-- `testingInstructions`: derive from repo patterns — **never ask** (infer up to 3 steps)
+- `acceptanceCriteria`: derive from repo patterns, existing tests, and feature description — **never ask** (infer up to 5 items; label uncertain ones `[Inference]`)
+- `testingInstructions`: derive from repo patterns and existing test conventions — **never ask** (infer up to 3 steps)
 - `story_type`: infer from context — "feature" for new capabilities, "bug" for fixes, "chore" for maintenance — **never ask**
 
-Use the `AskUserQuestion` tool for any clarifying questions. **Stop asking after 2 questions maximum** — draft regardless of remaining ambiguity, labeling uncertain fields as [Inference].
+Use the `AskUserQuestion` tool only when both of these are true: (1) the answer cannot be inferred from the codebase or context, and (2) getting it wrong would produce a materially misleading story. **Stop asking after 2 questions maximum** — draft regardless of remaining ambiguity, labeling uncertain fields as `[Inference]`.
 
 **Note:** The initial "What story would you like to create?" prompt in Phase 1 does **not** count against the 2-question limit. The limit applies only to clarifying questions asked during Phase 3.
 
