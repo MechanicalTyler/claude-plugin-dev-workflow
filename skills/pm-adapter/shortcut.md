@@ -34,7 +34,17 @@ When a branch with the story ID is pushed and a PR is opened, Shortcut links the
 
 ## Finding PRs linked to a story
 
-The Shortcut REST API returns linked PRs directly on the story object:
+**Option 1 — MCP (preferred if Shortcut MCP is configured):**
+
+```
+mcp__shortcut__stories-get-by-id
+  storyPublicId: {numeric-id}
+  full: true
+```
+
+The response includes a `pull_requests` array with PR data (title, URL, status, draft, merged) and a `branches` array with linked branches.
+
+**Option 2 — Shortcut REST API:**
 
 ```bash
 curl -H "Shortcut-Token: $SHORTCUT_API_TOKEN" \
@@ -42,7 +52,7 @@ curl -H "Shortcut-Token: $SHORTCUT_API_TOKEN" \
   | jq '.pull_requests[]'
 ```
 
-Or as a fallback, search GitHub:
+**Option 3 — GitHub search fallback:**
 ```bash
 gh pr list --state all --search "sc-{id}"
 ```

@@ -44,14 +44,32 @@ gh issue close {number}
 
 ## Finding PRs linked to a story
 
+**Option 1 — MCP (if `github/github-mcp-server` is configured):**
+
+```
+search_pull_requests
+  query: "repo:owner/repo closes:#{issue-number}"
+```
+
+Or to catch all keyword variants:
+```
+search_pull_requests
+  query: "repo:owner/repo #{issue-number}"
+```
+
+**Option 2 — `gh` CLI:**
+
 ```bash
 # Find PRs linked via closing keywords (most reliable)
 gh pr list --state all --search "linked:{issue-number}"
 
 # Or search by keyword in body
-gh pr list --state all --search "closes #{issue-number} OR fixes #{issue-number} OR resolves #{issue-number}"
+gh pr list --state all --search "closes #{issue-number} OR fixes #{issue-number}"
+```
 
-# Or via the issue timeline API (finds all cross-references)
+**Option 3 — Issue timeline API (finds all cross-references):**
+
+```bash
 gh api repos/OWNER/REPO/issues/{issue-number}/timeline --paginate \
   --jq '.[] | select(.event == "cross-referenced") | select(.source.type == "pull_request") | .source.issue.number'
 ```

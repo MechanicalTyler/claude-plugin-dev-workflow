@@ -65,7 +65,27 @@ Any one of the above is sufficient to show the PR in the Jira issue's Developmen
 
 ## Finding PRs linked to a story
 
-The Jira dev-status API returns linked PRs (requires Jira API token):
+**Option 1 — MCP (if `@aashari/mcp-server-atlassian-jira` is configured):**
+
+Two-step process using the generic `jira_get` tool:
+
+```
+# Step 1: get the numeric issue ID
+jira_get
+  path: /rest/api/3/issue/{KEY}
+  jq: .id
+```
+
+```
+# Step 2: fetch linked pull requests
+jira_get
+  path: /rest/dev-status/1.0/issue/detail
+  query-params: {"issueId": "{numeric-id}", "applicationType": "stash", "dataType": "pullrequest"}
+```
+
+Note: `applicationType` must be `"stash"` (legacy name used even for GitHub integrations).
+
+**Option 2 — Jira REST API directly:**
 
 ```bash
 # Step 1: get the numeric issue ID
@@ -75,11 +95,11 @@ ISSUE_ID=$(curl -su "user@example.com:$JIRA_API_TOKEN" \
 
 # Step 2: fetch linked pull requests
 curl -su "user@example.com:$JIRA_API_TOKEN" \
-  "https://your-domain.atlassian.net/rest/dev-status/latest/issue/detail?issueId=$ISSUE_ID&applicationType=GitHub&dataType=pullrequest" \
+  "https://your-domain.atlassian.net/rest/dev-status/1.0/issue/detail?issueId=$ISSUE_ID&applicationType=stash&dataType=pullrequest" \
   | jq '.detail[].pullRequests[]'
 ```
 
-Or as a fallback, search GitHub:
+**Option 3 — GitHub search fallback:**
 ```bash
 gh pr list --state all --search "{KEY}"
 ```

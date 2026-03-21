@@ -51,8 +51,9 @@ Linear MCP update tool, or GraphQL mutation for state/label changes.
 
 ## Finding PRs linked to a story
 
-Linear's public API does not expose linked PRs. Search GitHub directly:
+**MCP:** Linear's official MCP server (`mcp.linear.app/mcp`) does not expose a tool to list linked GitHub PRs. No MCP option available.
 
+**GitHub search (only option):**
 ```bash
 gh pr list --state all --search "TEAM-{id}"
 ```
