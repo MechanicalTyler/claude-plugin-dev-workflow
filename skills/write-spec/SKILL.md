@@ -80,8 +80,6 @@ Before the ULTRATHINK deep-dive, invoke brainstorming to surface unclear require
 
 ## Phase 4: Research & Decision Making
 
-**Autonomy first:** Before asking the user ANYTHING, exhaust all available tools. Read implementation files thoroughly (not just locate them), check git history for prior decisions, read tests to understand expected behavior, search for similar features in the codebase. Make your best informed decision and document it clearly. Questions are a last resort.
-
 For each significant technical decision:
 
 1. **List research questions** — codebase questions, technical questions, integration questions
