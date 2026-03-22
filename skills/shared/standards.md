@@ -21,6 +21,35 @@ These rules apply to every dev-workflow skill. Read this file at the start of ea
 
 ---
 
+## Output Mode Detection
+
+**Determine mode at the start of each session — it governs how you deliver your final response.**
+
+**Interactive mode (default):** The agent can ask the user questions and receive answers. Final response should be human-readable prose, structured naturally for a developer audience.
+
+**Autonomous mode:** Activated when any of the following are true:
+- The prompt states the agent is running autonomously or in a pipeline
+- The prompt instructs the agent to avoid asking questions unless absolutely necessary
+- No tool is available to ask the user questions (e.g. `AskUserQuestion` is absent)
+
+**Autonomous mode final response format — flat JSON key/value string:**
+
+Required keys (omit only if genuinely empty/unknown):
+- `service-name` — the service, repo, or project being acted on
+- `pm-key` — the PM ticket/story ID (e.g. `sc-1234`, `gh-42`)
+- `pr-number` — the GitHub PR number
+- `status` — `success` or `error`
+- `message` — one-sentence summary of what happened or what went wrong
+
+Then add **up to 3** additional keys for the most valuable inferred context (e.g. `branch`, `test-result`, `spec-path`, `reviewer-decision`). Choose only the highest-signal keys — do not pad.
+
+Example:
+```json
+{"service-name":"api-gateway","pm-key":"sc-1234","pr-number":"87","status":"success","message":"PR created and story updated.","branch":"feat/sc-1234-rate-limiting","test-result":"all passing"}
+```
+
+---
+
 ## Bash Command Rules
 
 To avoid triggering unnecessary approval prompts:
