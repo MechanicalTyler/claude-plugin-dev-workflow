@@ -34,13 +34,14 @@ Parse story ID from `$ARGUMENTS`:
 
 Use the notes adapter to check whether a spec already exists for this story ID.
 
-- If an **existing spec is found**: STOP immediately and ask the user:
+- If an **existing spec is found**: STOP and ask the user:
   > "A spec already exists for [story-id] at [path]. Would you like to:
   > 1. Use it as additional context and continue writing a new spec
   > 2. Update/overwrite the existing spec
   > 3. Cancel — keep the existing spec unchanged"
   >
-  > Do NOT proceed until the user chooses an option.
+  > Wait for the user to choose an option before proceeding. If you are unable to ask the user (e.g. running non-interactively), notify them and skip:
+  > "A spec already exists for [story-id] at [path]. Skipping spec creation."
 
 - If **no existing spec is found**: continue to Phase 2.
 
