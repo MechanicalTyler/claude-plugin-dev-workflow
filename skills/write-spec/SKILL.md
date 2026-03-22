@@ -30,7 +30,23 @@ Parse story ID from `$ARGUMENTS`:
 
 ---
 
-## Phase 2: Fetch Story
+## Phase 2: Check for Existing Spec
+
+Use the notes adapter to check whether a spec already exists for this story ID.
+
+- If an **existing spec is found**: STOP immediately and ask the user:
+  > "A spec already exists for [story-id] at [path]. Would you like to:
+  > 1. Use it as additional context and continue writing a new spec
+  > 2. Update/overwrite the existing spec
+  > 3. Cancel — keep the existing spec unchanged"
+  >
+  > Do NOT proceed until the user chooses an option.
+
+- If **no existing spec is found**: continue to Phase 2.
+
+---
+
+## Phase 3: Fetch Story
 
 Use PM adapter to fetch story by ID. Capture:
 - Story title and description
@@ -42,7 +58,7 @@ If the story contains screenshots, mockup images, or visual attachments you cann
 
 ---
 
-## Phase 2.5: Brainstorm Ambiguities and Approach
+## Phase 4: Brainstorm Ambiguities and Approach
 
 Before the ULTRATHINK deep-dive, invoke brainstorming to surface unclear requirements:
 
@@ -52,11 +68,17 @@ Before the ULTRATHINK deep-dive, invoke brainstorming to surface unclear require
 > and architectural questions.
 >
 > OVERRIDE: After brainstorming completes, do NOT invoke `superpowers:writing-plans`.
-> Return to Phase 3 (ULTRATHINK) — the brainstorming output informs that analysis.
+> Return to Phase 5 (ULTRATHINK) — the brainstorming output informs that analysis.
 
 ---
 
-## Phase 3: ULTRATHINK — Story Analysis and Codebase Investigation
+## Phase 5: ULTRATHINK — Story Analysis and Codebase Investigation
+
+**SCOPE BOUNDARY: You are writing a spec for THIS service only.**
+- Detect the current service: `git rev-parse --show-toplevel | xargs basename`
+- All codebase research MUST target files in the current repository
+- Other services or systems mentioned in the story are **reference context only** — do not write implementation steps, file changes, or instructions for them
+- If the story requires coordinated changes across services, note it as: `[Cross-service dependency: {service-name} — out of scope for this spec]`
 
 **Story Analysis:**
 - Read the complete story thoroughly
@@ -65,20 +87,20 @@ Before the ULTRATHINK deep-dive, invoke brainstorming to surface unclear require
 - Assess technical feasibility and complexity
 - Identify ambiguities requiring clarification
 
-**Codebase Investigation:**
-- Use Grep/Glob to find relevant code files
+**Codebase Investigation (this service only):**
+- Use Grep/Glob to find relevant code files in the current repository
 - Identify existing patterns and conventions
 - Locate similar features for reference
 - Understand current architecture and integration points
 - Document specific files, functions, and line numbers
 
 **Required Output:**
-- Minimum 3-5 relevant file references with explanations
+- Minimum 3-5 relevant file references with explanations (all from THIS service)
 - Format: `` `path/to/file.rs:123-145` — [Feature name] — Uses pattern X for [purpose] ``
 
 ---
 
-## Phase 4: Research & Decision Making
+## Phase 6: Research & Decision Making
 
 For each significant technical decision:
 
@@ -106,7 +128,29 @@ Document decisions using this format:
 
 ---
 
-## Phase 5: Multi-Perspective Analysis
+## Phase 7: Go/No-Go Spec Decision
+
+After deep research, assess whether you have enough information to write a spec that a junior developer could implement without significant guesswork.
+
+**Evaluate against these criteria:**
+- [ ] You can name the specific files that need to change
+- [ ] You understand the existing patterns to follow
+- [ ] Acceptance criteria can be mapped to concrete implementation steps
+- [ ] Edge cases and error states are understood or clearly deferrable
+- [ ] No critical unknowns remain that would block implementation
+
+**Decision:**
+- If **3 or more criteria cannot be met** even after research — STOP and ask the user:
+  > "After researching the codebase, I'm missing information needed to write a complete spec:
+  > - [list specific gaps]
+  >
+  > Would you like to provide this context, or shall I write a partial spec and flag these as `[Open Question]` items?"
+- If **minor gaps remain** — proceed and document them as `[Open Question]` items in the spec.
+- If **all criteria are met** — proceed immediately.
+
+---
+
+## Phase 8: Multi-Perspective Analysis
 
 Analyze from four perspectives sequentially:
 
@@ -136,21 +180,21 @@ Analyze from four perspectives sequentially:
 
 ---
 
-## Phase 5.5: Structure Implementation Tasks
+## Phase 9: Structure Implementation Tasks
 
 Before writing the final spec, use the writing-plans methodology to structure the implementation steps with granularity:
 
 > Invoke Skill: `superpowers:writing-plans`
 >
 > OVERRIDE: Do NOT save a separate plan file. Use the task breakdown produced here as
-> the content for the "Implementation Steps" section of the Claude Instructions spec in Phase 6.
+> the content for the "Implementation Steps" section of the Claude Instructions spec in Phase 10.
 >
 > OVERRIDE: Do NOT offer execution options at the end of this invocation. Output feeds into
 > Phase 6 spec writing only.
 
 ---
 
-## Phase 6: Write Claude Instructions
+## Phase 10: Write Claude Instructions
 
 Compose a comprehensive "Claude Instructions" spec using this structure:
 
@@ -189,6 +233,25 @@ Then use the notes adapter to write this spec:
 - Follow notes adapter instructions to write the spec to the correct location
 
 Confirm the spec was written and provide the path to the user.
+
+---
+
+## Phase 11: Link Spec to PM Ticket
+
+After the spec file is saved, update the original PM story to reference it:
+
+Use the PM adapter to add a comment or description update to the story. The comment should include:
+- The spec file path (relative to the repo root)
+- A brief summary of what the spec covers
+- Example format:
+  > **Implementation Spec Written**
+  > Spec: `docs/specs/{service-name}/{story-id}.md`
+  > Covers: [1-2 sentence summary of implementation approach]
+  > Written by: Claude Write Spec workflow
+
+If the PM adapter supports attaching files or adding external links, prefer that over a comment.
+
+If the PM adapter does not support comments or updates — note this to the user and provide the spec path so they can link it manually.
 
 ---
 
