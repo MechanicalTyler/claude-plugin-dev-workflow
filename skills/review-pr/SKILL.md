@@ -165,17 +165,73 @@ Analyze all file changes and understand the scope of modifications.
 > **EXHAUSTIVENESS MANDATE — FIRST REVIEW**
 > This is the only opportunity to identify issues. A re-review will not accept new findings unless they meet the Critical Exception Threshold (defined below). You must find everything now:
 > - Read the entire diff — every file, every line
-> - Apply all four perspectives with maximum scrutiny
+> - Apply all six specialist perspectives with maximum scrutiny
 > - Do not defer marginal issues thinking you can raise them next time — there is no next time
 > - If unsure whether something is worth flagging, flag it
 
-Proceed with the subagent skill invocation and four-perspective analysis below.
+**Step 1:** Read all six subagent instruction files **in parallel**:
+- `skills/subagents/code-quality-engineer.md`
+- `skills/subagents/simple-architecture-engineer.md`
+- `skills/subagents/security-engineer.md`
+- `skills/subagents/performance-engineer.md`
+- `skills/subagents/product-manager.md`
+- `skills/subagents/budget-manager.md`
+
+**Step 2:** Launch all 6 review subagents **in parallel** (all in a single message with multiple Agent tool calls).
+
+For each agent, craft a prompt that embeds:
+1. The full content of its instruction file (read in Step 1)
+2. The following shared context block:
+
+```
+---
+STORY REQUIREMENTS:
+[Story title, description, and all acceptance criteria from Phase 2]
+
+SPECIFICATION (Claude Instructions):
+[Full spec content from Phase 2]
+
+CI/CD STATUS:
+[Build/test/terraform results from Phase 3]
+
+PR DIFF:
+[Full diff from Phase 4]
+---
+```
+
+Launch the following 6 agents in parallel:
+
+1. **Code Quality Engineer** (subagent_type: general-purpose)
+   - Instructions: content of `skills/subagents/code-quality-engineer.md` + shared context
+   - Focus: correctness, naming, test quality, debug artifacts, consistency
+
+2. **Simple Architecture Engineer** (subagent_type: general-purpose)
+   - Instructions: content of `skills/subagents/simple-architecture-engineer.md` + shared context
+   - Focus: DRY, YAGNI, over-engineering, unnecessary abstractions, new dependencies
+
+3. **Security Engineer** (subagent_type: general-purpose)
+   - Instructions: content of `skills/subagents/security-engineer.md` + shared context
+   - Focus: OWASP Top 10, injection, auth, sensitive data exposure, input validation
+
+4. **Performance Engineer** (subagent_type: general-purpose)
+   - Instructions: content of `skills/subagents/performance-engineer.md` + shared context
+   - Focus: N+1 queries, algorithm complexity, memory, caching, async blocking
+
+5. **Product Manager** (subagent_type: general-purpose)
+   - Instructions: content of `skills/subagents/product-manager.md` + shared context
+   - Focus: acceptance criteria verification, user problem fit, regressions, readiness
+
+6. **Budget Manager** (subagent_type: general-purpose)
+   - Instructions: content of `skills/subagents/budget-manager.md` + shared context
+   - Focus: external API costs, infrastructure, storage, scaling cost profile
+
+Wait for all 6 agents to complete, then collect all findings before proceeding to Phase 5.5.
 
 ---
 
 ### Re-Review Mode
 
-**Do not run the subagent skill invocation or four-perspective analysis. Replace them entirely with the following:**
+**Do not run the parallel subagents. Replace them entirely with the following:**
 
 Work through each item in the **Previous Required Changes** list extracted in Phase 1.5. For each item:
 
@@ -196,50 +252,6 @@ After verifying all previous items, evaluate whether any **new** findings meet t
 List qualifying new findings under a **New Critical Findings** section with an explicit per-item justification of why the threshold is met.
 
 Once the verification checklist is complete, skip to Phase 5.5.
-
----
-
-### First Review Mode (continued)
-
-Before beginning the perspective-based review, invoke the code review request skill:
-
-> Invoke Skill: `superpowers:requesting-code-review`
->
-> Provide the code-reviewer subagent with:
-> - The Claude Instructions spec loaded in Phase 2 as the expected-functionality reference
-> - The story acceptance criteria from Phase 2
-> - The PR diff from Phase 4 as the code under review
->
-> After the subagent completes, incorporate its findings into the four-perspective analysis
-> below. Do not duplicate findings — use subagent output to inform and enrich each section.
-
-Review from four perspectives sequentially, comparing against: story requirements, Claude Instructions, and PR diff.
-
-#### A. Product Manager Review (Feature Completeness)
-- Does the implementation match the acceptance criteria?
-- Does it solve the original user problem?
-- Are there UX concerns?
-- Are there gaps between what was requested and delivered?
-
-#### B. Principal Developer Review (Code Quality)
-- Are there bugs or logic errors?
-- Is error handling comprehensive?
-- Are there debug statements or commented-out code that shouldn't be there?
-- Does it follow existing codebase patterns?
-- Are there any obvious performance issues?
-- Are there security vulnerabilities (injection, auth bypass, etc.)?
-
-#### C. QA Engineer Review (Test Coverage)
-- Are there sufficient tests for the new functionality?
-- Are any tests disabled, skipped, or mocked to always pass?
-- Do tests cover error cases and edge cases?
-- Would these tests have caught the bug (for bug fixes)?
-
-#### D. Software Architect Review (Structure)
-- Is the code over-engineered for this use case?
-- Are new abstractions actually needed?
-- Does the structure align with the existing architecture?
-- Are there any concerning dependencies introduced?
 
 ---
 
@@ -289,7 +301,7 @@ Review from four perspectives sequentially, comparing against: story requirement
 [Omit entirely in re-review unless directly related to an unresolved previous request]
 ~~~
 
-**For First Review Mode**, use the original body format:
+**For First Review Mode**, synthesize all six subagent reports into this format. De-duplicate findings that appear across multiple reports — each issue should appear once, in the section most relevant to it. Prioritize findings by severity when populating Required Changes.
 
 **Review body format:**
 ```markdown
@@ -298,23 +310,29 @@ Review from four perspectives sequentially, comparing against: story requirement
 ## Summary
 [2-3 sentence overview of the implementation quality]
 
-## Product Manager Perspective
-[Feature completeness findings]
+## Code Quality
+[Key findings from Code Quality Engineer — correctness, naming, test coverage]
 
-## Developer Perspective
-[Code quality findings with file:line references]
+## Architecture
+[Key findings from Simple Architecture Engineer — simplicity, DRY, design]
 
-## QA Perspective
-[Test coverage findings]
+## Security
+[Key findings from Security Engineer — omit section if no findings]
 
-## Architect Perspective
-[Structure findings]
+## Performance
+[Key findings from Performance Engineer — omit section if no findings]
+
+## Product Fit
+[Acceptance criteria verification and product findings from Product Manager]
+
+## Budget Impact
+[Cost impact rating and findings from Budget Manager — omit section if no new costs]
 
 ## Required Changes
-[Bulleted list of must-fix items]
+[Consolidated must-fix items from all reviewers, bulleted with file:line references]
 
 ## Suggestions (Optional)
-[Bulleted list of nice-to-have improvements]
+[Consolidated nice-to-have improvements from all reviewers]
 ```
 
 Submit formal GitHub review with decision:
