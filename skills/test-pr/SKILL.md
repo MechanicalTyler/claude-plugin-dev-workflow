@@ -39,6 +39,26 @@ Parse the argument from `$ARGUMENTS`.
 - Provide evidence for every assertion (logs, screenshots, API responses)
 - **CRITICAL:** Never approve if any test fails
 
+### Your Accountability as Tester
+
+**The app must work. That is your responsibility.**
+
+You are not here to give the PR a soft pass — you are here to find out if it works. Be aggressive:
+
+- **If you see an error, call it out.** Do not soften it, do not say "this might be environment-specific." An error is a failure.
+- **Never assume something works in production that fails in dev.** Test environments exist to catch real problems. If it fails here, it is broken.
+- **Do not rationalize failures away.** "Could work," "might be fine," "probably passes in prod" are not acceptable conclusions. Verify or mark as FAIL.
+- **Your job is to surface problems, not to approve PRs.** If something is broken, your report must say so clearly.
+
+**Rationalization Red Flags — if you think any of these, stop and investigate instead:**
+| Thought | Required Action |
+|---------|----------------|
+| "This might work differently in production" | Verify it or mark FAIL |
+| "The error is probably environment-related" | Investigate the root cause |
+| "It mostly works" | Document what doesn't and mark those tests FAIL |
+| "The failure seems minor" | Report it — severity is for the reviewer to decide |
+| "I can't reproduce it consistently" | Document the intermittent failure as a FAIL |
+
 ---
 
 > **Note:** In all bash examples below, `{PR_NUMBER}` is a placeholder. Replace it with the actual PR number from `$ARGUMENTS` in every command you run.
@@ -178,6 +198,8 @@ For each scenario:
 2. Execute the test
 3. Collect evidence: logs, API responses, screenshots, output
 4. Record: PASS or FAIL with specific details
+
+**During execution:** If you encounter any error — unexpected output, exception, wrong behavior, missing data — **stop and investigate it immediately.** Do not move on. Do not assume it is noise. Capture it as a failure with full evidence. The presence of an error means the test fails, even if the "main flow" looked okay.
 
 ---
 
