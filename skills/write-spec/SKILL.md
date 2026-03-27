@@ -9,6 +9,8 @@ description: "Use when a developer needs a detailed technical spec before coding
 
 **SCOPE BOUNDARY:** This skill writes a spec file and NOTHING else. It does **not** write code, write any other local files, make commits, checkout git branches, implement features, or begin development. When the spec file is saved, output the path and STOP.
 
+**AUDIENCE:** The spec must be digestible by a product manager. Write in plain language describing *what* to build and *why*, not *how* to code it. Implementation details like code examples, function signatures, and algorithmic pseudocode are the developer's responsibility — omit them from the spec.
+
 ## Arguments: $ARGUMENTS
 
 Story ID is passed as the first argument (e.g., `sc-12345` or `12345`).
@@ -191,11 +193,20 @@ Before writing the final spec, use the writing-plans methodology to structure th
 > the content for the "Implementation Steps" section of the Claude Instructions spec in Phase 10.
 >
 > OVERRIDE: Do NOT offer execution options at the end of this invocation. Output feeds into
-> Phase 6 spec writing only.
+> Phase 10 spec writing only.
+>
+> OVERRIDE: Implementation steps must describe WHAT to do, not HOW to code it.
+> Use plain language (e.g., "Add a validation endpoint that checks X against Y")
+> not code examples or pseudocode. The developer determines the code.
 
 ---
 
 ## Phase 10: Write Claude Instructions
+
+**Spec writing rules:**
+- Describe behavior and requirements, not code. No code blocks, pseudocode, or function signatures.
+- File references (e.g., `path/to/file.rs`) are acceptable for pointing developers to the right location. Code excerpts from those files are not.
+- A product manager should be able to read this spec and understand every section.
 
 Compose a comprehensive "Claude Instructions" spec using this structure:
 
