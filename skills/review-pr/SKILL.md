@@ -1,5 +1,5 @@
 ---
-name: review-pr
+name: dev-workflow:review-pr
 description: "Comprehensive multi-perspective PR review (Product Manager, Developer, QA, and Architect lenses) that compares implementation against story requirements and CI/CD results. Includes automatic first-review vs re-review mode detection. Always use this when a user asks to review a PR, check a pull request, or validate an implementation against requirements."
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: create-story
+name: dev-workflow:create-story
 description: "Use when a user wants to capture a feature idea as a formal story, create a ticket, write to the backlog, or says 'create a story', 'write a ticket', 'add to backlog', or describes a feature they want tracked."
 ---
 

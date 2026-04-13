@@ -1,5 +1,5 @@
 ---
-name: start-debugging
+name: dev-workflow:start-debugging
 description: "Three-mode unified skill for debugging bugs, standalone story implementation, and addressing PR review feedback (rework). Mode is auto-detected from arguments: no args = debug mode (investigate a reported bug), story-id only = development mode (implement a story), story-id + --rework = rework mode (address reviewer feedback). Use whenever a bug needs systematic investigation, review changes need addressing, or a story needs implementing without the full developer workflow."
 ---
 

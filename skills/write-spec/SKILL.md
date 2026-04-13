@@ -1,5 +1,5 @@
 ---
-name: write-spec
+name: dev-workflow:write-spec
 description: "Use when a developer needs a detailed technical spec before coding, when a user provides a story ID and asks for a spec, implementation plan, or Claude Instructions, or always before the Start Development skill when working from a PM story."
 ---
 
