@@ -148,7 +148,82 @@ internally. This step adds a final whole-implementation review before the PR is 
 
 ## Pre-Completion Verification
 
-Before declaring work complete, run the verification skill:
+Before declaring work complete, run the steps below in order.
+
+### Terraform Plan Check (if applicable)
+
+Detect whether terraform files were changed in this branch. First, fetch the remote to ensure the default branch ref is up to date:
+
+```bash
+git fetch origin
+```
+
+Then diff against the remote default branch:
+
+```bash
+git diff origin/HEAD --name-only
+```
+
+Look for any files ending in `.tf` or located inside a `tf/` path.
+
+**If no terraform files changed:** Skip this section and proceed to the verification skill below.
+
+**If terraform files changed:** Check whether a CI terraform plan workflow ran for this branch. First get the current branch name:
+
+```bash
+git branch --show-current
+```
+
+Then check CI runs:
+
+```bash
+gh-as-app.sh developer run list --branch <current-branch> --json conclusion,status,name,createdAt,workflowName --limit 25
+```
+
+Look for any workflow whose name contains "terraform" (case-insensitive).
+
+- **CI terraform run found and passed:** No additional action needed — CI has already validated the plan. Continue to the verification skill below.
+- **CI terraform run found and failed:** The CI terraform plan failed. Do not declare work complete — fix the plan failure and re-run CI before proceeding.
+- **CI terraform workflow is still `in_progress`:** Wait for it to complete. Re-run the `gh run list` command every 2 minutes until the run reaches a terminal conclusion (success, failure, or cancelled). Cap the wait at 30 minutes total. If the run has not completed after 30 minutes, note a warning and continue to the verification skill below.
+- **No CI terraform run found:** Run `terraform plan` directly. Use the same directory detection as review-pr Phase 3: check for `tf/` first, then `terraform/`, then fall back to the directory of the changed `.tf` files. For example, if `tf/` exists:
+
+  ```bash
+  terraform -chdir=tf/ plan
+  ```
+
+  - **`terraform` is not installed on the machine:** Note that terraform validation was not possible due to the missing CLI. Continue to the verification skill below with a warning.
+  - **Plan exits with a non-zero exit code:** Do not declare work complete — fix the plan failure before proceeding.
+  - **Plan exits with exit code 0:**
+
+    Capture the full plan output. Before including it in the PR description, consider omitting any sensitive attribute values (ARNs, account IDs, IP ranges, secret resource references) from the output.
+
+    If a PR already exists for this branch, append the plan output to the PR description using `--body-file` to avoid shell injection from plan output that may contain backticks or `$()`:
+
+    1. Read the current PR body:
+
+       ```bash
+       gh-as-app.sh developer pr view --json body -q .body
+       ```
+
+    2. Write the combined body (existing content + the Terraform Plan section) to `.scratch/pr-body-updated.txt` using the Write tool.
+
+    3. Update the PR description:
+
+       ```bash
+       gh-as-app.sh developer pr edit --body-file .scratch/pr-body-updated.txt
+       ```
+
+    4. Delete the scratch file:
+
+       ```bash
+       rm .scratch/pr-body-updated.txt
+       ```
+
+    If no PR exists yet, save the plan output to `.scratch/terraform-plan.txt` — you will include it in the PR description when you create the PR.
+
+  Then continue to the verification skill below.
+
+### Final Verification
 
 > Invoke Skill: `superpowers:verification-before-completion`
 >
