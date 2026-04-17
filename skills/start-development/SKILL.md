@@ -152,10 +152,16 @@ Before declaring work complete, run the steps below in order.
 
 ### Terraform Plan Check (if applicable)
 
-Detect whether terraform files were changed in this branch:
+Detect whether terraform files were changed in this branch. First, fetch the remote to ensure the default branch ref is up to date:
 
 ```bash
-git diff main --name-only
+git fetch origin
+```
+
+Then diff against the remote default branch:
+
+```bash
+git diff origin/HEAD --name-only
 ```
 
 Look for any files ending in `.tf` or located inside a `tf/` path.
@@ -177,36 +183,43 @@ gh-as-app.sh developer run list --branch <current-branch> --json conclusion,stat
 Look for any workflow whose name contains "terraform" (case-insensitive).
 
 - **CI terraform run found and passed:** No additional action needed — CI has already validated the plan. Continue to the verification skill below.
-- **CI terraform workflow is still `in_progress`:** Wait for it to complete. Re-run the `gh run list` command every 2 minutes until the run reaches a terminal conclusion (success, failure, or cancelled). Then evaluate the result using the cases above.
-- **No CI terraform run found:** Run `terraform plan` directly. If `tf/` exists:
+- **CI terraform run found and failed:** The CI terraform plan failed. Do not declare work complete — fix the plan failure and re-run CI before proceeding.
+- **CI terraform workflow is still `in_progress`:** Wait for it to complete. Re-run the `gh run list` command every 2 minutes until the run reaches a terminal conclusion (success, failure, or cancelled). Cap the wait at 30 minutes total. If the run has not completed after 30 minutes, note a warning and continue to the verification skill below.
+- **No CI terraform run found:** Run `terraform plan` directly. Use the same directory detection as review-pr Phase 3: check for `tf/` first, then `terraform/`, then fall back to the directory of the changed `.tf` files. For example, if `tf/` exists:
 
   ```bash
   terraform -chdir=tf/ plan
   ```
 
-  If `tf/` does not exist, identify the directory containing `.tf` files (check for `terraform/` or look at the changed `.tf` file paths) and substitute that path in the `-chdir=` flag.
+  - **`terraform` is not installed on the machine:** Note that terraform validation was not possible due to the missing CLI. Continue to the verification skill below with a warning.
+  - **Plan exits with a non-zero exit code:** Do not declare work complete — fix the plan failure before proceeding.
+  - **Plan exits with exit code 0:**
 
-  Capture the full plan output. If a PR already exists for this branch, append the plan output to the PR description:
+    Capture the full plan output. Before including it in the PR description, consider omitting any sensitive attribute values (ARNs, account IDs, IP ranges, secret resource references) from the output.
 
-  1. Read the current PR body:
+    If a PR already exists for this branch, append the plan output to the PR description using `--body-file` to avoid shell injection from plan output that may contain backticks or `$()`:
 
-     ```bash
-     gh-as-app.sh developer pr view --json body -q .body
-     ```
+    1. Read the current PR body:
 
-  2. Set the updated body (existing content + the plan section appended):
+       ```bash
+       gh-as-app.sh developer pr view --json body -q .body
+       ```
 
-     ```bash
-     gh-as-app.sh developer pr edit --body "<existing body>
+    2. Write the combined body (existing content + the Terraform Plan section) to `.scratch/pr-body-updated.txt` using the Write tool.
 
-## Terraform Plan
+    3. Update the PR description:
 
-\`\`\`
-<plan output here>
-\`\`\`"
-     ```
+       ```bash
+       gh-as-app.sh developer pr edit --body-file .scratch/pr-body-updated.txt
+       ```
 
-  If no PR exists yet, save the plan output — you will include it in the PR description when you create the PR (in the PR Creation section above).
+    4. Delete the scratch file:
+
+       ```bash
+       rm .scratch/pr-body-updated.txt
+       ```
+
+    If no PR exists yet, save the plan output to `.scratch/terraform-plan.txt` — you will include it in the PR description when you create the PR.
 
   Then continue to the verification skill below.
 

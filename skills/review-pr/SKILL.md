@@ -135,11 +135,13 @@ After waiting, check results:
 
 #### Terraform Plan Validation
 
-Run the following command to get the list of changed files, then check whether any `.tf` files were modified or any files inside a `tf/` path were changed:
+Fetch changed files and most recent commit timestamp in a single call:
 
 ```bash
-gh pr view {PR_NUMBER} --json files
+gh pr view {PR_NUMBER} --json files,commits
 ```
+
+Use `.files` to check whether any `.tf` files were modified or any files inside a `tf/` path were changed. Use `.commits[-1].committedDate` to get the PR's most recent commit timestamp.
 
 **If no terraform files changed:** Skip this section entirely.
 
@@ -151,31 +153,21 @@ gh run list --branch "branch-name-from-earlier" --json conclusion,status,name,cr
 
 Check the results for any workflow whose name contains the word "terraform" (case-insensitive).
 
-Before evaluating CI results, get the PR's most recent commit timestamp:
-
-```bash
-gh pr view {PR_NUMBER} --json commits -q '.commits[-1].committedDate'
-```
-
-Note this timestamp — it will be used to verify that any passing terraform CI run is not stale.
-
-- **CI terraform workflow is still `in_progress` (conclusion is null):** Re-run `gh run list` every 2 minutes until the run reaches a terminal conclusion (success, failure, or cancelled). Then evaluate the result using the cases below.
-- **CI terraform run found and passed:** Verify the run's `createdAt` timestamp is more recent than the PR's most recent commit (obtained in the step above). If it is, note the result and continue. If the passing run predates the most recent commit, treat it as "No CI terraform run found" and fall through to the manual plan fallback.
+- **CI terraform workflow is still `in_progress` (conclusion is null):** Re-run `gh run list` every 2 minutes until the run reaches a terminal conclusion (success, failure, or cancelled). Cap the wait at 30 minutes total. If the run has not completed after 30 minutes, post a review comment noting that the terraform CI run did not complete within the timeout and **STOP** — do not proceed until the terraform CI run reaches a terminal state.
+- **CI terraform run found and passed:** Verify the run's `createdAt` timestamp is more recent than `.commits[-1].committedDate` (obtained above). If it is, note the result and continue. If the passing run predates the most recent commit, treat it as "No CI terraform run found" and fall through to the manual plan fallback.
 
 - **CI terraform run found and failed:** Post a review comment noting the CI terraform plan failure and the workflow name. **STOP** — do not proceed with the code review until the CI check passes.
 
-- **No CI terraform run found (fallback):** Run `terraform plan` directly using the standard command:
+- **No CI terraform run found (fallback):** Run `terraform plan` directly. Check for `tf/` first, then `terraform/`, then fall back to the directory of the changed `.tf` files. For example, if `tf/` exists:
 
   ```bash
   terraform -chdir=tf/ plan
   ```
 
-  If the `tf/` directory does not exist, identify the directory containing `.tf` files (check for `terraform/` or look at the paths of changed `.tf` files) and substitute that path in the `-chdir=` flag.
-
   - **`terraform` is not installed on the machine:** Post a note in the review comment that terraform validation was not possible due to missing CLI. Do **not** halt the review — continue with a warning.
   - **Plan exits with a non-zero exit code:** Include the full plan output in the review comment, request changes, and **STOP**.
   - **Plan exits with exit code 0:** Continue to the sub-cases below.
-    - **Plan shows infrastructure changes (any resources to add, change, or destroy):** Include the full plan output in the review comment and evaluate whether the changes align with the PR's stated intent.
+    - **Plan shows infrastructure changes (any resources to add, change, or destroy):** Include the plan output in the review comment, omitting any sensitive attribute values (ARNs, account IDs, IP ranges, secret resource references). Evaluate whether the changes align with the PR's stated intent.
       - Changes appear **unrelated** to the PR's stated purpose → flag as unexpected drift, request changes, and **STOP**.
       - Changes **clearly match** what the PR description says it will do → note the plan output and proceed.
     - **Plan exits cleanly with no changes:** Add a brief note ("No infrastructure drift detected — terraform plan clean") and proceed.
