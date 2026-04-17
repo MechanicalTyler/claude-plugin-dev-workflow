@@ -148,7 +148,69 @@ internally. This step adds a final whole-implementation review before the PR is 
 
 ## Pre-Completion Verification
 
-Before declaring work complete, run the verification skill:
+Before declaring work complete, run the steps below in order.
+
+### Terraform Plan Check (if applicable)
+
+Detect whether terraform files were changed in this branch:
+
+```bash
+git diff main --name-only
+```
+
+Look for any files ending in `.tf` or located inside a `tf/` path.
+
+**If no terraform files changed:** Skip this section and proceed to the verification skill below.
+
+**If terraform files changed:** Check whether a CI terraform plan workflow ran for this branch. First get the current branch name:
+
+```bash
+git branch --show-current
+```
+
+Then check CI runs:
+
+```bash
+gh-as-app.sh developer run list --branch <current-branch> --json conclusion,status,name,createdAt,workflowName --limit 25
+```
+
+Look for any workflow whose name contains "terraform" (case-insensitive).
+
+- **CI terraform run found and passed:** No additional action needed — CI has already validated the plan. Continue to the verification skill below.
+- **CI terraform workflow is still `in_progress`:** Wait for it to complete. Re-run the `gh run list` command every 2 minutes until the run reaches a terminal conclusion (success, failure, or cancelled). Then evaluate the result using the cases above.
+- **No CI terraform run found:** Run `terraform plan` directly. If `tf/` exists:
+
+  ```bash
+  terraform -chdir=tf/ plan
+  ```
+
+  If `tf/` does not exist, identify the directory containing `.tf` files (check for `terraform/` or look at the changed `.tf` file paths) and substitute that path in the `-chdir=` flag.
+
+  Capture the full plan output. If a PR already exists for this branch, append the plan output to the PR description:
+
+  1. Read the current PR body:
+
+     ```bash
+     gh-as-app.sh developer pr view --json body -q .body
+     ```
+
+  2. Set the updated body (existing content + the plan section appended):
+
+     ```bash
+     gh-as-app.sh developer pr edit --body "<existing body>
+
+## Terraform Plan
+
+\`\`\`
+<plan output here>
+\`\`\`"
+     ```
+
+  If no PR exists yet, save the plan output — you will include it in the PR description when you create the PR (in the PR Creation section above).
+
+  Then continue to the verification skill below.
+
+### Final Verification
 
 > Invoke Skill: `superpowers:verification-before-completion`
 >
