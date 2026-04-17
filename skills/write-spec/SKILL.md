@@ -17,14 +17,16 @@ Story ID is passed as the first argument (e.g., `sc-12345` or `12345`).
 
 Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
 
+Read `skills/shared/adapter-loading.md` — adapter loading procedures referenced in Phase 1.
+
 ---
 
 ## Phase 1: Load Adapters
 
 1. Read `~/.claude/dev-workflow/config.json`
 2. Note `pm_adapter` and `notes_adapter` values
-3. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md`
-4. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md`
+3. Load PM adapter per procedure in `skills/shared/adapter-loading.md`
+4. Load notes adapter per procedure in `skills/shared/adapter-loading.md`
 
 Parse story ID from `$ARGUMENTS`:
 - Accept formats: `sc-12345` or `12345`
