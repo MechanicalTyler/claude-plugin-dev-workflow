@@ -4,7 +4,7 @@
 
 **CRITICAL:** Agents MUST call the Read tool on the user override path **first**, before considering fallback options. The fact that a fallback file has content is NOT a valid reason to use it.
 
-**The ONLY condition that permits falling back to the built-in adapter is receiving a "File does not exist" error on the override Read call.** Any other result — content, empty file, permission error, path error — requires either using the override (if it has content) or stopping with an error. Never skip to Step 2 for any other reason.
+**The conditions that permit falling back to the built-in adapter are:** (1) receiving a "File does not exist" error on the override Read call, or (2) the override file exists but is empty or contains no adapter instructions (see Step 1). **Any other result — permission error, unexpected path error, or any non-file-system error — requires stopping with an error. Never skip to Step 2 for any other reason.**
 
 Do not attempt to check if files exist before reading them, and do not rationalize using the fallback because "it's probably there anyway." Always read the override path first and respond to the actual result of that operation.
 

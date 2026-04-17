@@ -21,10 +21,7 @@ Read `~/.claude/dev-workflow/config.json`. The `pm_adapter` field names which ad
 ## How to use
 
 1. Read config to get `pm_adapter` value
-2. Load adapter with user-override lookup:
-   - First: Read `~/.claude/skills/pm-adapter/{pm_adapter}.md` — if found, use it (user override)
-   - Fallback: load `skills/pm-adapter/{pm_adapter}.md` (plugin built-in)
-   - If neither exists: STOP — "PM adapter '{name}' not found. Check ~/.claude/dev-workflow/config.json and ensure ~/.claude/skills/pm-adapter/{name}.md exists or the name matches a built-in adapter."
+2. Load adapter per procedure in `skills/shared/adapter-loading.md` (## Load PM Adapter)
 3. Follow adapter's instructions for all PM operations
 
 ## User Adapters

@@ -23,10 +23,7 @@ Run this to determine the current service name. Use it as part of the spec path.
 ## How to use
 
 1. Read config to get `notes_adapter` value
-2. Load adapter with user-override lookup:
-   - First: Read `~/.claude/skills/notes-adapter/{notes_adapter}.md` — if found, use it (user override)
-   - Fallback: load `skills/notes-adapter/{notes_adapter}.md` (plugin built-in)
-   - If neither exists: STOP — "Notes adapter '{name}' not found. Check ~/.claude/dev-workflow/config.json and ensure ~/.claude/skills/notes-adapter/{name}.md exists or the name matches a built-in adapter."
+2. Load adapter per procedure in `skills/shared/adapter-loading.md` (## Load Notes Adapter)
 3. Follow adapter's instructions for all read/write spec operations
 
 ## User Adapters
