@@ -9,6 +9,8 @@ description: "Full-stack development workflow with story context loading, TDD, a
 
 Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
 
+Read `skills/shared/adapter-loading.md` — adapter loading procedures referenced in PM Context.
+
 Read the CLAUDE.md file in this repository before starting.
 
 ---
@@ -50,8 +52,8 @@ After planning, skip the "PM Context" and "Implementation Planning" sections —
 If you have a story ID:
 
 1. Read `~/.claude/dev-workflow/config.json` to determine `pm_adapter` and `notes_adapter`
-2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story via PM adapter instructions
-3. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
+2. Load PM adapter per procedure in `skills/shared/adapter-loading.md` → fetch story via PM adapter instructions
+3. Load notes adapter per procedure in `skills/shared/adapter-loading.md` → read Claude Instructions spec
 4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
 5. Use spec as the primary implementation guide
 
