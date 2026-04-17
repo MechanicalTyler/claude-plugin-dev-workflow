@@ -13,6 +13,8 @@ Either a PR number (e.g., `42`) or a PM ticket ID (e.g., `sc-123`) may be passed
 
 Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
 
+Read `skills/shared/adapter-loading.md` — adapter loading procedures referenced in Phase 0 and Phase 2.
+
 ---
 
 ## Phase 0: Resolve Input to PR Number
@@ -24,7 +26,7 @@ Parse the argument from `$ARGUMENTS`.
 **If the argument contains non-numeric characters** (e.g., `sc-123`, `LIN-456`) → treat it as a PM ticket ID and resolve it:
 
 1. Read `~/.claude/dev-workflow/config.json` to get `pm_adapter`
-2. Load PM adapter (user override first, then built-in)
+2. Load PM adapter per procedure in `skills/shared/adapter-loading.md`
 3. Use the adapter's **"Finding PRs linked to a story"** instructions to look up linked PRs — adapters with native API support (Shortcut, Jira, GitHub Issues) will return authoritative results; others fall back to `gh pr list --state all --search "{story_id}"`
 4. **If exactly one PR is found** → extract its number. Use it as the PR number for all subsequent phases.
 5. **If no PRs are found** → STOP: "No PR found referencing {story_id}. Ensure the PR is linked to the story in the format your PM adapter expects, then try again."
@@ -98,9 +100,9 @@ Also check PR title if not found in body.
 **Once ID found:**
 
 1. Read `~/.claude/dev-workflow/config.json` to get `pm_adapter` and `notes_adapter`
-2. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md` → fetch story by ID
+2. Load PM adapter per procedure in `skills/shared/adapter-loading.md` → fetch story by ID
 3. Detect service name: `git rev-parse --show-toplevel | xargs basename`
-4. Load notes adapter: check `~/.claude/skills/notes-adapter/{notes_adapter}.md` first (user override); fall back to `skills/notes-adapter/{notes_adapter}.md` → read Claude Instructions spec
+4. Load notes adapter per procedure in `skills/shared/adapter-loading.md` → read Claude Instructions spec
 5. **If spec not found:** ERROR and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
 
 ---

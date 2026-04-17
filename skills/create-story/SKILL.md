@@ -15,6 +15,8 @@ No required arguments. Optional: a brief feature description as a starting promp
 
 Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
 
+Read `skills/shared/adapter-loading.md` — adapter loading procedure referenced in Phase 2.
+
 ---
 
 ## Phase 0: Discover Repos & Load Context
@@ -55,10 +57,9 @@ Read `skills/shared/standards.md` — these mandatory rules govern this entire s
 
 1. Read `~/.claude/dev-workflow/config.json`
 2. Note the `pm_adapter` value
-3. Load PM adapter: check `~/.claude/skills/pm-adapter/{pm_adapter}.md` first (user override); fall back to `skills/pm-adapter/{pm_adapter}.md`
-4. If neither exists: STOP — "PM adapter '{name}' not found. Check ~/.claude/dev-workflow/config.json and ensure the adapter file exists."
-5. Confirm the adapter implements **Create Story** (capability #5) by checking for a `## Create Story` heading in the loaded adapter file. If not found: STOP — "This PM adapter does not support Create Story. Please update ~/.claude/skills/pm-adapter/{name}.md with a Create Story section."
-6. Check whether the loaded adapter has pre-flight requirements (e.g., Linear requires `teamId`, Jira requires `PROJECT_KEY` if not yet established in session). Surface any such requirements to the user **before** starting the interview in Phase 3, so they don't interrupt Phase 6.
+3. Load PM adapter per procedure in `skills/shared/adapter-loading.md`
+4. Confirm the adapter implements **Create Story** (capability #5) by checking for a `## Create Story` heading in the loaded adapter file. If not found: STOP — "This PM adapter does not support Create Story. Please update ~/.claude/skills/pm-adapter/{name}.md with a Create Story section."
+5. Check whether the loaded adapter has pre-flight requirements (e.g., Linear requires `teamId`, Jira requires `PROJECT_KEY` if not yet established in session). Surface any such requirements to the user **before** starting the interview in Phase 3, so they don't interrupt Phase 6.
 
 ---
 
