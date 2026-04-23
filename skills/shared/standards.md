@@ -79,6 +79,16 @@ Questions are a last resort — only ask when **all** of these are true:
 
 ---
 
+## Activate Terse Mode
+
+After reading this file, immediately invoke:
+
+> Invoke Skill: `caveman:caveman`
+
+If the invocation fails for any reason (plugin not installed, skill not found, or any other error), silently continue — this is a non-blocking enhancement.
+
+---
+
 ## Problem Solving
 
 - Never give up. If stuck, ask for help.
