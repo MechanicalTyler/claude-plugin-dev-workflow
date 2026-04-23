@@ -15,14 +15,6 @@ Read the CLAUDE.md file in this repository before starting.
 
 ---
 
-## Activate Terse Mode
-
-Invoke Skill: `caveman:caveman`
-
-If the invocation fails for any reason (plugin not installed, skill not found, or any other error), silently continue — this is a non-blocking enhancement.
-
----
-
 ## Branch Management
 
 - **ALWAYS** start by checking out a new branch with prefix: `feature/`, `fix/`, or `chore/`

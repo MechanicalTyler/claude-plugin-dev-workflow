@@ -19,14 +19,6 @@ Read `skills/shared/adapter-loading.md` — adapter loading procedure referenced
 
 ---
 
-## Activate Terse Mode
-
-Invoke Skill: `caveman:caveman`
-
-If the invocation fails for any reason (plugin not installed, skill not found, or any other error), silently continue — this is a non-blocking enhancement.
-
----
-
 ## Phase 0: Discover Repos & Load Context
 
 1. Determine the workspace root — use the current working directory
