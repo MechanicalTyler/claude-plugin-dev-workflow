@@ -63,7 +63,7 @@ Rules for forming expectations:
 **Step 3: Examine actual work**
 
 - **For `review_target: "spec document"`:** Read the spec content provided in `review_context` and any spec files referenced by the notes adapter
-- **For `review_target: "code changes on branch"` / `"rework changes on branch"` / `"bug fix on branch"`:** Run `git diff main...HEAD` to see all changes introduced on the branch, then read specific files as needed to investigate individual expectations
+- **For `review_target: "code changes on branch"` / `"rework changes on branch"` / `"bug fix on branch"`:** Detect the default branch (`git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@'`), then run `git diff <default-branch>...HEAD` to see all changes introduced on the branch. Read specific files as needed to investigate individual expectations.
 
 **Step 4: Audit each expectation**
 
