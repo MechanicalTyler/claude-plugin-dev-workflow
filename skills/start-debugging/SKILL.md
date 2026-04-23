@@ -90,6 +90,16 @@ Apply the full TDD cycle:
 - PR body: describe the bug, root cause (with file:line refs), and fix
 - Include test results as evidence
 
+### Step 7: Adversarial Review
+
+Read and follow the adversarial review procedure in `skills/shared/adversarial-review.md` with these context variables:
+
+- `story_id`: (empty — no story in debug mode)
+- `review_target`: "bug fix on branch"
+- `review_context`: the bug description from Step 1, root cause analysis from Step 4, and the reproduction test name from Step 5
+
+The adversarial agent verifies the fix actually addresses the identified root cause, the test genuinely reproduces the original bug (not a different scenario), and no regressions were introduced.
+
 ---
 
 ## Development Mode
@@ -155,6 +165,16 @@ With branch created and plan written:
 - Title: concise and descriptive
 - Body: summary + story reference (PM adapter format) + testing steps from Claude Instructions
 - NO AI-generated boilerplate
+
+### Step 6: Adversarial Review
+
+Read and follow the adversarial review procedure in `skills/shared/adversarial-review.md` with these context variables:
+
+- `story_id`: the story ID from arguments
+- `review_target`: "code changes on branch"
+- `review_context`: the Claude Instructions spec loaded in Step 1
+
+The adversarial agent verifies the implementation satisfies all spec requirements and story acceptance criteria.
 
 ---
 
@@ -244,6 +264,16 @@ PR body format:
 - [ ] [Step to verify rework item 2]
 - [ ] Existing tests still pass
 ```
+
+### Step 6: Adversarial Review
+
+Read and follow the adversarial review procedure in `skills/shared/adversarial-review.md` with these context variables:
+
+- `story_id`: the story ID from arguments
+- `review_target`: "rework changes on branch"
+- `review_context`: the rework checklist from Step 2 and the Claude Instructions spec from Step 1
+
+The adversarial agent verifies each rework item from the checklist was properly addressed.
 
 ---
 

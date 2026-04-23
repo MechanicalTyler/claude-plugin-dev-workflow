@@ -236,6 +236,18 @@ Look for any workflow whose name contains "terraform" (case-insensitive).
 
 ---
 
+## Adversarial Review (when story ID provided)
+
+If the "No Story ID Path" was used (no PM story), skip this section — there is no independent story/spec to form expectations against.
+
+Read and follow the adversarial review procedure in `skills/shared/adversarial-review.md` with these context variables:
+
+- `story_id`: the story ID from PM Context
+- `review_target`: "code changes on branch"
+- `review_context`: the Claude Instructions spec loaded during PM Context
+
+---
+
 ## Completion Criteria
 
 - All changes are committed with clean messages

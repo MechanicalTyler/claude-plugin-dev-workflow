@@ -269,3 +269,15 @@ If the PM adapter does not support comments or updates — note this to the user
 
 ---
 
+## Phase 12: Adversarial Review
+
+Read and follow the adversarial review procedure in `skills/shared/adversarial-review.md` with these context variables:
+
+- `story_id`: the story ID from `$ARGUMENTS`
+- `review_target`: "spec document"
+- `review_context`: the full Claude Instructions spec content written in Phase 10
+
+The adversarial agent verifies the spec completely and accurately captures all story requirements, acceptance criteria, and testing instructions. It checks that no story requirements were dropped, watered down, or misinterpreted.
+
+---
+
