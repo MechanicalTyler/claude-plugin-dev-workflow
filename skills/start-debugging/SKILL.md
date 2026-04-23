@@ -13,6 +13,16 @@ Read `skills/shared/standards.md` — these mandatory rules govern this entire s
 
 Read `skills/shared/adapter-loading.md` — adapter loading procedures referenced in Development Mode and Rework Mode.
 
+---
+
+## Activate Terse Mode
+
+Invoke Skill: `caveman:caveman`
+
+If the invocation fails for any reason (plugin not installed, skill not found, or any other error), silently continue — this is a non-blocking enhancement.
+
+---
+
 ## Mode Detection
 
 Parse arguments:

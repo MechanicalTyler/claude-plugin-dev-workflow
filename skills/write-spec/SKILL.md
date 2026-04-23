@@ -21,6 +21,14 @@ Read `skills/shared/adapter-loading.md` — adapter loading procedures reference
 
 ---
 
+## Activate Terse Mode
+
+Invoke Skill: `caveman:caveman`
+
+If the invocation fails for any reason (plugin not installed, skill not found, or any other error), silently continue — this is a non-blocking enhancement.
+
+---
+
 ## Phase 1: Load Adapters
 
 1. Read `~/.claude/dev-workflow/config.json`

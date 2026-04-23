@@ -9,6 +9,16 @@ description: "Address PR review feedback in the current session — reads new co
 
 Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
 
+---
+
+## Activate Terse Mode
+
+Invoke Skill: `caveman:caveman`
+
+If the invocation fails for any reason (plugin not installed, skill not found, or any other error), silently continue — this is a non-blocking enhancement.
+
+---
+
 Compact the conversation before continuing — you are about to iterate on existing work.
 
 ---
