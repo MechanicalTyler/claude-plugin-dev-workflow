@@ -91,6 +91,36 @@ Address each item from the checklist:
 
 ---
 
+## Step 5.5: Functional Verification in Dev Environment
+
+After unit/integration tests pass, verify the fixes work in a running environment. Loop until certain.
+
+**Deploy:**
+
+Check `~/.claude/dev-workflow/config.json` for `deploy_command`.
+
+- **If `deploy_command` is configured:** Deploy the branch to dev — follow the same deployment procedure as `dev-workflow:test-pr` Phase 3 (GitHub Actions, shell command, or other pattern).
+- **If not configured:** Run the service locally. Start it using whatever mechanism the project provides (Makefile, npm scripts, etc.).
+
+**Test:**
+
+For each item from the Step 3 checklist, design and execute a focused test scenario:
+
+1. Document what you're doing and the expected outcome
+2. Execute with fresh commands — no assumptions from prior runs
+3. Collect evidence: logs, API responses, CLI output, screenshots
+4. Record PASS or FAIL with specific details
+
+Apply the accountability rules from `dev-workflow:test-pr`: if you see an error, it is a failure — do not rationalize it away.
+
+**Loop:**
+
+- If any test fails → fix the issue, commit, push, re-deploy, re-test
+- Continue until ALL addressed items pass functional testing
+- Only proceed to Step 6 when you are certain every fix works correctly in the running environment
+
+---
+
 ## Step 6: Reply to PR
 
 Post a comment on the PR summarizing what was done. Call out anywhere you deviated from what the reviewer requested and explain why.
