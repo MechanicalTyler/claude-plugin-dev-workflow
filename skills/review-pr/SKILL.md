@@ -62,6 +62,8 @@ gh pr view {PR_NUMBER} --json body,headRefName,number,title,isDraft
 
 ## Phase 1.5: Detect Review Mode
 
+> **ALWAYS-FRESH MANDATE:** Every invocation of this skill must be treated as if new changes have been pushed. Never assume there is nothing to review because this is a re-run. Always load the current diff in Phase 4 and read it in full — this is non-negotiable regardless of review mode.
+
 Fetch all existing reviews on this PR. Use the actual PR number from arguments.
 
 ```bash
@@ -177,6 +179,8 @@ Check the results for any workflow whose name contains the word "terraform" (cas
 ---
 
 ## Phase 4: Load PR Changes
+
+> **Never skip this phase.** Regardless of review mode, always fetch a fresh diff. Re-review mode changes how findings are classified — it does not eliminate the requirement to read the current diff.
 
 Get the list of changed files:
 

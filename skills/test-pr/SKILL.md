@@ -67,6 +67,8 @@ You are not here to give the PR a soft pass — you are here to find out if it w
 
 ## Phase 1: Load PR Details
 
+> **ALWAYS-FRESH MANDATE:** Every invocation of this skill must be treated as a fresh test run. Never assume prior test results still apply or that nothing changed since the last run. Always deploy and test from scratch — there are always new changes to validate.
+
 Get PR details using the actual PR number from arguments:
 
 ```bash

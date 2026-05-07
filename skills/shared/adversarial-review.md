@@ -143,6 +143,12 @@ After receiving the subagent's report, the main agent acts as follows:
 
 - **ACCEPTABLE (zero FAIL items):** Log the report and proceed to the next phase or step. No rework required.
 
-- **UNACCEPTABLE (one or more FAIL items):** Address each FAIL item. This is a single correction pass — do NOT re-run the adversarial review after making fixes. After all FAIL items are addressed, proceed to the next phase or step.
+- **UNACCEPTABLE (one or more FAIL items):** Enter the iteration loop:
+
+  1. Address each FAIL item from the report.
+  2. Re-run the adversarial review by spawning a fresh subagent using the same procedure above.
+  3. If the new report is ACCEPTABLE → log the report and proceed to the next phase or step.
+  4. If the new report is still UNACCEPTABLE → repeat steps 1–3.
+  5. **Maximum 5 total adversarial review iterations (including the first run).** If UNACCEPTABLE after 5 iterations, **STOP immediately.** Present the remaining FAIL items to the user and ask for guidance. Do not make further changes without explicit user input.
 
 - **UNVERIFIED items:** Note them but do not block progress. UNVERIFIED means the subagent could not conclusively verify the expectation from static artifacts (e.g., runtime behavior, external service calls). These are informational, not blocking.
