@@ -198,6 +198,22 @@ Check the results for any workflow whose name contains the word "terraform" (cas
 
 ---
 
+## Phase 3.5: Re-Read PR Description and Comments
+
+> **Deviation Awareness:** Before reviewing code, re-read the PR description and all conversation comments to identify **explicit deviation decisions** — cases where the developer intentionally diverged from the spec or standard approach and documented their reasoning.
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{PR_NUMBER} --jq '.body'
+```
+
+```bash
+gh api repos/{owner}/{repo}/issues/{PR_NUMBER}/comments
+```
+
+Extract any stated deviations, trade-off decisions, or "I chose X instead of Y because Z" notes. Carry these forward as **Acknowledged Deviations** — do not flag these as issues in Phase 5 unless there is strong reason to disagree (e.g., security risk, data loss, correctness failure). If you do disagree, explicitly reference the developer's stated reasoning and explain why the concern overrides it.
+
+---
+
 ## Phase 4: Load PR Changes
 
 > **Never skip this phase.** Regardless of review mode, always fetch a fresh diff. Re-review mode changes how findings are classified — it does not eliminate the requirement to read the current diff.
@@ -397,6 +413,21 @@ Once the verification checklist is complete, skip to Phase 5.5.
 
 ## Suggestions (Optional)
 [Consolidated nice-to-have improvements from all reviewers]
+```
+
+### Inline Comments
+
+Where a finding is tied to a specific line of code, post it as an **inline review comment** on that line rather than burying it in the review body. Use inline comments for:
+- Required changes with a clear `file:line` target
+- Suggestions tied to a specific code pattern
+- Questions about a specific implementation choice
+
+The review body should summarize and reference these inline comments, not duplicate their full content.
+
+To post inline comments as part of the review, use `gh api` to create a review with comments:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/reviews -f event="REQUEST_CHANGES" -f body="..." -f 'comments[][path]="file.ts"' -f 'comments[][position]=42' -f 'comments[][body]="..."'
 ```
 
 Submit formal GitHub review with decision:
