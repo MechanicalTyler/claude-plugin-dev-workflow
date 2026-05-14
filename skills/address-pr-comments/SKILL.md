@@ -123,7 +123,21 @@ Apply the accountability rules from `dev-workflow:test-pr`: if you see an error,
 
 ## Step 6: Reply to PR
 
-Post a comment on the PR summarizing what was done. Call out anywhere you deviated from what the reviewer requested and explain why.
+### 6a: Reply to Inline Comments Directly
+
+For each inline file comment addressed in Step 4, post a **direct reply** on that comment thread explaining what was changed:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/comments/{COMMENT_ID}/replies -f body="..."
+```
+
+Reply format: one concise sentence stating what was done (e.g., "Fixed — switched to `parseISO()` at `utils.ts:47`."). Do not repeat the reviewer's request back to them.
+
+If you deviated from what the reviewer asked on a specific comment, explain why in the reply to that comment.
+
+### 6b: Post Summary Comment
+
+Post a summary comment on the PR covering all changes. Call out any deviations not already explained in inline replies.
 
 Comment format:
 ```markdown

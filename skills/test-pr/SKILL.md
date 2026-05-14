@@ -98,6 +98,22 @@ Parse PR body for story reference using the PM adapter's "Story Reference in PRs
 
 ---
 
+## Phase 2.5: Re-Read PR Description and Comments
+
+> **Deviation Awareness:** Before testing, re-read the PR description and all conversation comments to identify **explicit deviation decisions** — cases where the developer intentionally diverged from the spec or acceptance criteria and documented their reasoning.
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{PR_NUMBER} --jq '.body'
+```
+
+```bash
+gh api repos/{owner}/{repo}/issues/{PR_NUMBER}/comments
+```
+
+Extract any stated deviations or scope adjustments. Carry these forward as **Acknowledged Deviations** — when designing test scenarios in Phase 4, test against the developer's stated behavior (not the original spec) for acknowledged deviations. Only flag a deviation as a failure if there is strong reason to disagree (e.g., the deviation breaks a critical acceptance criterion, introduces a security risk, or causes data loss). If you do flag it, explicitly reference the developer's reasoning and explain why.
+
+---
+
 ## Phase 3: Deploy
 
 Read `~/.claude/dev-workflow/config.json` for `deploy_command`.
@@ -257,6 +273,23 @@ If Phase 5 produced **3 or more independent test failures** across different sub
 ---
 
 ## Phase 7: Submit Review
+
+### Inline Comments
+
+Where a test failure or concern is tied to a specific line of code, post it as an **inline review comment** on that line. Use inline comments for:
+- Test failures traceable to a specific code path
+- Observed bugs with a clear `file:line` origin
+- Questions about specific implementation behavior discovered during testing
+
+The review body should contain the full test report; inline comments supplement it with precise code-level context.
+
+To post inline comments as part of the review, use `gh api` to create a review with comments:
+
+```bash
+gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/reviews -f event="REQUEST_CHANGES" -f body="..." -f 'comments[][path]="file.ts"' -f 'comments[][position]=42' -f 'comments[][body]="..."'
+```
+
+### Submit
 
 Submit formal GitHub review using the actual PR number:
 - **APPROVE** (`gh pr review {PR_NUMBER} --approve`) if all tests pass
