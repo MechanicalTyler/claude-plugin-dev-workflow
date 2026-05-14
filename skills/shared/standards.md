@@ -19,6 +19,24 @@ These rules apply to every dev-workflow skill. Read this file at the start of ea
 - Output should read as if written by a human engineer
 - Clear, professional, technically focused language
 
+### Writing Style
+
+Read and apply `skills/shared/anti-ai-writing-style.md` — it governs all written output in this session (PR descriptions, review comments, commit messages, reports, user-facing text).
+
+---
+
+## Subagent Model Selection
+
+When dispatching subagents via the Agent tool, use the `model` parameter to match task type:
+
+| Task type | Model | Examples |
+|-----------|-------|----------|
+| Coding / implementation | `sonnet` | Implementer subagents, TDD cycles, file edits |
+| Reasoning / exploration / planning | `opus` | Brainstorming, root cause analysis, architecture decisions |
+| Review / testing | `opus` | Code quality review, spec compliance review, PR review subagents, test scenario design |
+
+These assignments override the generic guidance in `superpowers:subagent-driven-development`. Pass the `model` parameter on every `Agent()` call that dispatches a subagent.
+
 ---
 
 ## Output Mode Detection
