@@ -115,6 +115,26 @@ Also check PR title if not found in body.
 
 **NEVER run terraform apply.** Only run terraform plan for validation.
 
+### Load CI Configuration
+
+Read `~/.claude/dev-workflow/config.json` for `review_ci_command`.
+
+`review_ci_command` is a natural language instruction describing how to trigger CI for the PR branch, keyed by repository name with a `fallback` entry for unlisted repos.
+
+Detect the current repository name:
+
+```bash
+git rev-parse --show-toplevel | xargs basename
+```
+
+Look up the repo name in `review_ci_command`. If not found, use the `fallback` entry. If `review_ci_command` is not configured at all, fall through to the default behavior below.
+
+**If `review_ci_command` is configured:** Interpret the natural language instruction and execute it against the PR branch. Then proceed to monitoring below.
+
+**If `review_ci_command` is not configured:** Use the default behavior — list existing CI runs and trigger any missing or failed workflows.
+
+### Get Branch and List CI Runs
+
 First get the branch name for this PR:
 
 ```bash
