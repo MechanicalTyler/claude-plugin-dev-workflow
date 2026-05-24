@@ -69,8 +69,8 @@ Before the ULTRATHINK deep-dive, invoke brainstorming to surface unclear require
 
 > Invoke Skill: `superpowers:brainstorming`
 >
-> Focus on: acceptance criteria ambiguities, implicit requirements not stated in the story,
-> and architectural questions.
+> Focus on: gaps or contradictions in the stated acceptance criteria,
+> and architectural questions within the stated scope.
 >
 > OVERRIDE: After brainstorming completes, do NOT invoke `superpowers:writing-plans`.
 > Return to Phase 5 (ULTRATHINK) — the brainstorming output informs that analysis.
