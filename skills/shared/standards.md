@@ -97,6 +97,21 @@ Questions are a last resort — only ask when **all** of these are true:
 
 ---
 
+## Scope Discipline
+
+**Do exactly what was asked. Nothing more.**
+
+- Implement only the requirements explicitly stated in the story, spec, or user request
+- Do not add features, improvements, refactorings, or "nice-to-haves" that were not requested
+- Do not surface "implicit requirements" and treat them as work items — if something truly seems missing, flag it as an `[Open Question]` for the user to decide, do not include it in the deliverable
+- "Targeted improvements" to surrounding code are out of scope unless the user specifically requested them
+- Brainstorming should identify risks and ambiguities in the *stated* requirements — not generate new requirements or expand what was asked for
+- If you discover something that arguably "should" be done but wasn't requested: note it briefly to the user at the end. Do not act on it
+
+**The test:** Before including any work item, ask: "Did the user or story explicitly ask for this?" If the answer is no, leave it out.
+
+---
+
 ## Activate Terse Mode
 
 After reading this file, immediately invoke:

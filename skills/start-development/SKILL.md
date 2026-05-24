@@ -28,7 +28,7 @@ Read the CLAUDE.md file in this repository before starting.
 If **no story ID** was provided, work directly with the user to define and scope the task:
 
 1. **Understand the task** — If the request is vague or missing, use `AskUserQuestion` to clarify what needs to be built or changed.
-2. **Brainstorm requirements** — Before writing any code, invoke brainstorming to surface edge cases, scope, and approach:
+2. **Brainstorm requirements** — Before writing any code, invoke brainstorming to clarify scope boundaries and identify risks within the stated requirements:
    > Invoke Skill: `superpowers:brainstorming`
    >
    > OVERRIDE: After brainstorming completes, do NOT invoke `superpowers:writing-plans` yet.
