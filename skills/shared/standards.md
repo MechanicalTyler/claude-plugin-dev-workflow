@@ -35,6 +35,7 @@ Human-readable artifacts that are **written to local files** must be standalone 
 - GitHub PR descriptions and PR titles
 - GitHub review bodies, inline comments, and PR comments
 - PM story bodies, descriptions, and comments (Shortcut, Linear, Jira, GitHub Issues)
+- Design decision records under `.claude/dev-workflow/design-decisions/` — these are `.md` files (see Design Decisions below)
 
 When a skill shows a mockup to the user, render it as HTML.
 
@@ -91,6 +92,7 @@ To avoid triggering unnecessary approval prompts:
 - **No comments before commands** — Never put `# comment` lines before or inside a Bash call. Remove all inline comments from shell commands.
 - **No multi-`$()` compositions** — Never build a single command from multiple `$()` substitutions. Run each sub-command separately and use its literal output value.
 - **One operation per call** — Each distinct shell operation should be its own Bash tool call.
+- **No Bash-invoked inline Python** — Never run Python through Bash as an inline snippet (`python -c "..."`, `python3 <<'EOF'` heredocs, or piping a script into the interpreter). These trigger an approval prompt and are only permitted when the session is running in dangerously-skipped-permissions mode. To process or transform data, use the sandboxed context-mode `ctx_execute` MCP tool (no approval required) or commit a real `.py` script file and run it. This ban is about *inline* Python passed to Bash — not the MCP sandbox.
 
 ---
 
@@ -124,6 +126,36 @@ Questions are a last resort — only ask when **all** of these are true:
 - If you discover something that arguably "should" be done but wasn't requested: note it briefly to the user at the end. Do not act on it
 
 **The test:** Before including any work item, ask: "Did the user or story explicitly ask for this?" If the answer is no, leave it out.
+
+---
+
+## Testing Standards
+
+**Write only real, functional, relevant tests.** A test must exercise actual behavior and be capable of failing when that behavior breaks.
+
+- **No useless tests** — Do not write tests that assert against a value that can never change. Examples of useless tests: asserting a mock returns the value it was configured to return, asserting a constant equals itself, asserting a getter returns the field it was just set with. These pass regardless of whether the real code works and provide no signal.
+- **What a useful test looks like** — It feeds real input through the unit under test and asserts on the produced output. Example: a function takes a string, parses/converts it, and returns a list — the test passes a representative string and asserts the exact list it should produce, including edge cases (empty, malformed, boundary values).
+- **Mocks are for isolating dependencies, not for being the assertion target** — Mock external systems to control inputs, then assert on what *your* code does with them. Never let the assertion reduce to "the mock equals the mock."
+- **Mandatory "why" comment** — Every test must open with a comment stating *why* the test exists and what it protects — the behavior or regression it guards. State the value, not a restatement of the test name.
+
+  ```
+  # Why: parseTags must split a comma-delimited string into a trimmed list so that
+  # downstream filtering matches tags regardless of user spacing. Guards the empty-string
+  # case which previously produced a [""] phantom tag.
+  ```
+
+This standard governs tests written in target repositories during development — it does not relax the rule that tests must never be skipped, ignored, deleted, or commented out to make a suite pass.
+
+---
+
+## Design Decisions
+
+A target repository may record architectural and design decisions as markdown files under `.claude/dev-workflow/design-decisions/` (any depth — `.claude/dev-workflow/design-decisions/**/*.md`). These are durable, agreed-upon decisions. Treat them as authoritative constraints.
+
+- **Respect existing decisions** — Before changing behavior in an area covered by a design decision record, read the relevant record(s) and follow them. They override your default judgment.
+- **Never overwrite without permission** — Do not modify or replace an existing `.claude/dev-workflow/design-decisions/**/*.md` file without first asking the user and getting explicit approval. If a new decision contradicts a recorded one, surface the conflict and let the user decide.
+- **Record decisions made together** — When you and the user reach a non-trivial design decision during a session, write it to `.claude/dev-workflow/design-decisions/` as a new markdown file named for the functionality it governs (e.g. `inline-python-execution.md`, `tag-parsing-format.md`). Use kebab-case. Capture: the decision, the rationale, alternatives considered, and the date.
+- These records are markdown, **excluded** from the HTML Output Format rule above.
 
 ---
 
