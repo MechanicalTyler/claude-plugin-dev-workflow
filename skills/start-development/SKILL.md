@@ -36,7 +36,9 @@ If **no story ID** was provided, work directly with the user to define and scope
 3. **Plan implementation** — Invoke the planning skill:
    > Invoke Skill: `superpowers:writing-plans`
    >
-   > OVERRIDE: Save plan to `./.scratch/tmp/YYYY-MM-DD-plan.md`.
+   > OVERRIDE: The plan is a human-readable artifact saved to a local file — render it as a
+   > standalone HTML document per the Output Format rules in `skills/shared/standards.md`, and
+   > save to `./.scratch/tmp/YYYY-MM-DD-plan.html`.
    > NEVER save to `docs/` or any subdirectory (including `docs/superpowers/plans/`).
    > `.scratch/` is gitignored — this file must never be committed.
    > Use the brainstorming output and user's description as the feature description input.
@@ -65,7 +67,9 @@ After loading the Claude Instructions spec, invoke the planning skill:
 
 > Invoke Skill: `superpowers:writing-plans`
 >
-> OVERRIDE: Save plan to `./.scratch/tmp/YYYY-MM-DD-<story-id>-plan.md`.
+> OVERRIDE: The plan is a human-readable artifact saved to a local file — render it as a
+> standalone HTML document per the Output Format rules in `skills/shared/standards.md`, and
+> save to `./.scratch/tmp/YYYY-MM-DD-<story-id>-plan.html`.
 > NEVER save to `docs/` or any subdirectory (including `docs/superpowers/plans/`).
 > `.scratch/` is gitignored — this file must never be committed.
 > Use the Claude Instructions spec as the feature description input.

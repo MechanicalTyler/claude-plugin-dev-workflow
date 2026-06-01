@@ -25,6 +25,21 @@ Read and apply `skills/shared/anti-ai-writing-style.md` — it governs all writt
 
 ---
 
+## Output Format
+
+Human-readable artifacts that are **written to local files** must be standalone HTML documents — not markdown. This applies to specs, plan files, design docs, mockups, and any report saved locally for a human to open and read.
+
+**Standalone HTML** means each file is a complete document: `<!DOCTYPE html>`, a `<head>` with a `<title>` and minimal embedded `<style>`, and a `<body>` holding the content. The file opens cleanly in a browser on its own. Use the `.html` extension.
+
+**Excluded — keep these as markdown** (markdown is the native format for these surfaces; HTML renders poorly or appears as raw tags):
+- GitHub PR descriptions and PR titles
+- GitHub review bodies, inline comments, and PR comments
+- PM story bodies, descriptions, and comments (Shortcut, Linear, Jira, GitHub Issues)
+
+When a skill shows a mockup to the user, render it as HTML.
+
+---
+
 ## Subagent Model Selection
 
 When dispatching subagents via the Agent tool, use the `model` parameter to match task type:
