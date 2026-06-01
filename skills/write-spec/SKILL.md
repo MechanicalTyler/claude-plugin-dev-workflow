@@ -210,36 +210,56 @@ Before writing the final spec, use the writing-plans methodology to structure th
 - File references (e.g., `path/to/file.rs`) are acceptable for pointing developers to the right location. Code excerpts from those files are not.
 - A product manager should be able to read this spec and understand every section.
 
-Compose a comprehensive "Claude Instructions" spec using this structure:
+The spec is a human-readable artifact saved to a local file, so it must be a **standalone HTML document** per the Output Format rules in `skills/shared/standards.md` — not markdown. Compose a comprehensive "Claude Instructions" spec using this structure:
 
-```markdown
-# Claude Instructions: [Story Title]
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Claude Instructions: [Story Title]</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 56rem; margin: 2rem auto; padding: 0 1.5rem; line-height: 1.6; color: #1a1a1a; }
+    h1 { border-bottom: 2px solid #ddd; padding-bottom: .3rem; }
+    h2 { margin-top: 2rem; }
+    code { background: #f4f4f4; padding: .1rem .3rem; border-radius: 3px; font-family: ui-monospace, monospace; }
+    ul { padding-left: 1.4rem; }
+    .check { list-style: none; padding-left: 0; }
+    .check li::before { content: "\2610  "; }
+  </style>
+</head>
+<body>
+  <h1>Claude Instructions: [Story Title]</h1>
 
-## Story Summary
-[Brief description of what needs to be built]
+  <h2>Story Summary</h2>
+  <p>[Brief description of what needs to be built]</p>
 
-## Technical Context
-[Key files, patterns, and architectural context relevant to this feature]
+  <h2>Technical Context</h2>
+  <p>[Key files, patterns, and architectural context relevant to this feature]</p>
 
-## Implementation Steps
-[Numbered step-by-step implementation guide with file:line references]
+  <h2>Implementation Steps</h2>
+  <ol>
+    <li>[Step with <code>file:line</code> references]</li>
+  </ol>
 
-## Test Requirements
-[What tests need to be written, what patterns to follow]
+  <h2>Test Requirements</h2>
+  <p>[What tests need to be written, what patterns to follow]</p>
 
-## Manual Testing
-### Happy Path
-- [ ] [Step to verify normal usage]
+  <h2>Manual Testing</h2>
+  <h3>Happy Path</h3>
+  <ul class="check"><li>[Step to verify normal usage]</li></ul>
+  <h3>Error Scenarios</h3>
+  <ul class="check"><li>[Step to verify error handling]</li></ul>
+  <h3>UX Verification</h3>
+  <ul class="check"><li>[Step to verify user experience]</li></ul>
 
-### Error Scenarios
-- [ ] [Step to verify error handling]
-
-### UX Verification
-- [ ] [Step to verify user experience]
-
-## Validation Checklist
-- [ ] [Acceptance criterion 1]
-- [ ] [Acceptance criterion 2]
+  <h2>Validation Checklist</h2>
+  <ul class="check">
+    <li>[Acceptance criterion 1]</li>
+    <li>[Acceptance criterion 2]</li>
+  </ul>
+</body>
+</html>
 ```
 
 Then use the notes adapter to write this spec:
@@ -259,7 +279,7 @@ Use the PM adapter to add a comment or description update to the story. The comm
 - A brief summary of what the spec covers
 - Example format:
   > **Implementation Spec Written**
-  > Spec: `docs/specs/{service-name}/{story-id}.md`
+  > Spec: `docs/specs/{service-name}/{story-id}.html`
   > Covers: [1-2 sentence summary of implementation approach]
   > Written by: Claude Write Spec workflow
 

@@ -6,13 +6,15 @@ No external tools required — specs travel with the code.
 
 ## Spec path
 
+Specs are standalone HTML documents (see Output Format in `skills/shared/standards.md`), so they use the `.html` extension.
+
 ```
-{repo_root}/docs/specs/{story-id}.md
+{repo_root}/docs/specs/{story-id}.html
 ```
 
 Example: for story sc-12345:
 ```
-/path/to/your/repo/docs/specs/sc-12345.md
+/path/to/your/repo/docs/specs/sc-12345.html
 ```
 
 Get repo root with:
