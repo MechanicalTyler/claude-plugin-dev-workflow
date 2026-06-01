@@ -75,6 +75,8 @@ Before the ULTRATHINK deep-dive, invoke brainstorming to surface unclear require
 > OVERRIDE: After brainstorming completes, do NOT invoke `superpowers:writing-plans`.
 > Return to Phase 5 (ULTRATHINK) — the brainstorming output informs that analysis.
 
+**Interactive mode — full-understanding mandate:** When running in interactive mode (you can ask the user questions), it is your job to fully understand the entire feature before writing the spec. Keep asking the user clarifying questions — in a back-and-forth — until no material ambiguity about scope, behavior, edge cases, or intent remains. A spec you do not fully understand is a spec you cannot write correctly. This overrides the general "questions are a last resort" posture in `standards.md` *for spec writing specifically*: still investigate the codebase first, but where investigation cannot settle a question and you are interactive, **ask rather than assume**. Do not move past this phase with an understanding you would describe as partial.
+
 ---
 
 ## Phase 5: ULTRATHINK — Story Analysis and Codebase Investigation
@@ -117,10 +119,9 @@ For each significant technical decision:
    - One approach is significantly simpler → choose simplicity (YAGNI)
    - Research shows clear best practice → follow it
    - Ambiguous but not high-stakes → pick the most reasonable option, document the trade-off, and move on
-5. **Use AskUserQuestion ONLY when ALL of these are true:**
-   - The answer cannot be found by reading the codebase, docs, or git history
-   - The decision is genuinely high-stakes (significantly impacts cost, timeline, or architecture)
-   - Getting it wrong would require substantial rework — not just a minor tweak
+5. **Asking the user:**
+   - **Interactive mode:** Per the full-understanding mandate in Phase 4, ask whenever investigation cannot resolve a question that affects scope, behavior, edge cases, or intent — the high-stakes bar does not apply to spec writing. Always investigate the codebase, docs, and git history first; ask about what investigation genuinely cannot settle. Do not leave a question unresolved by choosing not to ask.
+   - **Autonomous mode (no AskUserQuestion available):** You cannot ask. Resolve every question by investigation. Where investigation cannot fully settle a question, make the most reasonable decision, label it `[Inference]` with rationale, and proceed. Never emit an `[Open Question]` — see Phase 7.
 
 Document decisions using this format:
 ```
@@ -144,13 +145,15 @@ After deep research, assess whether you have enough information to write a spec 
 - [ ] Edge cases and error states are understood or clearly deferrable
 - [ ] No critical unknowns remain that would block implementation
 
+**No open questions in the final spec.** A finished spec must never contain `[Open Question]` items. Every question must be resolved before the spec is written — either automatically through investigation, or, in interactive mode, through back-and-forth with the user. Resolve them; do not defer them.
+
 **Decision:**
-- If **3 or more criteria cannot be met** even after research — STOP and ask the user:
-  > "After researching the codebase, I'm missing information needed to write a complete spec:
+- **Interactive mode** — If any criterion cannot be met after research, do not write a partial spec. Take the unresolved gaps back to the user and resolve them in a back-and-forth (re-enter the Phase 4 brainstorm if the gaps are substantial). Only proceed to write the spec once every criterion is met and no open questions remain:
+  > "Before I can write a complete spec, I need to resolve these with you:
   > - [list specific gaps]
   >
-  > Would you like to provide this context, or shall I write a partial spec and flag these as `[Open Question]` items?"
-- If **minor gaps remain** — proceed and document them as `[Open Question]` items in the spec.
+  > [Ask the specific questions needed to close each gap.]"
+- **Autonomous mode (cannot ask)** — Resolve every gap by investigation. For any gap investigation cannot fully close, make the most reasonable decision, document it as a `[Decision]` with `[Inference]`-labeled rationale and the trade-off, and proceed. Never emit `[Open Question]` — a documented inferred decision is required instead.
 - If **all criteria are met** — proceed immediately.
 
 ---
