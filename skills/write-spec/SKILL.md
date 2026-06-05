@@ -337,12 +337,12 @@ Record all spec paths as written. Output a summary noting that user approval was
 After user approval, update the **single original PM story** (not per-repo) to reference all generated specs.
 
 Use the PM adapter to add a comment or description update to the story. The comment should include one entry per repo spec:
-- The spec file path for each repo (relative to that repo's root)
+- The spec file path for each repo (relative to that repo's own root — the repo is identified by its tag, since each repo's spec lives at the same path within its own checkout)
 - A brief summary of what each spec covers
 - Example format (multi-repo):
   > **Implementation Specs Written**
-  > - `[api]` Spec: `docs/specs/api/{story-id}.html` — Covers: [1-2 sentence summary]
-  > - `[web]` Spec: `docs/specs/web/{story-id}.html` — Covers: [1-2 sentence summary]
+  > - `[api]` Spec: `docs/specs/{story-id}.html` — Covers: [1-2 sentence summary]
+  > - `[web]` Spec: `docs/specs/{story-id}.html` — Covers: [1-2 sentence summary]
   > Written by: Claude Write Spec workflow
 
 If the PM adapter supports attaching files or adding external links, prefer adding one external link per repo spec (not per story). If it supports only one external link, add a comment instead with all paths.
@@ -362,6 +362,8 @@ Read and follow the adversarial review procedure in `skills/shared/adversarial-r
 - `review_context`: the full Claude Instructions spec content written in Phase 10
 
 The adversarial agent verifies the spec completely and accurately captures all story requirements, acceptance criteria, and testing instructions. It checks that no story requirements were dropped, watered down, or misinterpreted.
+
+**Multi-repo:** run this review once per generated spec, passing that repo's spec as `review_context`. Filter the story's acceptance criteria and testing items to those tagged for that repo (plus `[all]`) when forming expectations, so each repo's spec is judged only against the requirements it owns.
 
 ---
 
