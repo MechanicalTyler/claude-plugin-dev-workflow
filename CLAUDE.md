@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**dev-workflow** is a Claude plugin (v2.13.0) that provides action-based development workflow orchestration with pluggable PM and notes adapters. It enables specialized workflows (Start Development, Story to Spec, Review PR, Test PR, Start Debugging, Create Story) through structured, quality-gated stages.
+**dev-workflow** is a Claude plugin (v2.14.0) that provides action-based development workflow orchestration with pluggable PM and notes adapters. It enables specialized workflows (Start Development, Story to Spec, Review PR, Test PR, Start Debugging, Create Story, Full Cycle) through structured, quality-gated stages.
 
 **Dependency:** Requires the `superpowers` plugin to be installed — it provides core methodology skills (TDD, debugging, brainstorming, subagent orchestration, verification).
 
@@ -23,6 +23,7 @@ Skills are invoked directly by name:
 | `/start start-debugging` | `dev-workflow:start-debugging` | Bug investigation |
 | `/start start-debugging story-id --rework` | `dev-workflow:start-debugging` (rework mode) | Address review feedback |
 | `/start create-story` | `dev-workflow:create-story` | Interview user → draft → submit story |
+| `/start full-cycle [story-id\|description]` | `dev-workflow:full-cycle` | End-to-end lifecycle orchestrator looping review/test until pass |
 
 ### Adapter System
 
@@ -61,6 +62,7 @@ skills/
   test-pr/            # Evidence-based functional testing
   start-debugging/    # Debug/dev/rework unified skill
   create-story/       # Interactive interview → PM story creation
+  full-cycle/         # End-to-end lifecycle orchestrator (sequences all stages)
   address-pr-comments/ # Address review feedback in current session
   pm-adapter/         # PM tool adapters + interface spec
   notes-adapter/      # Notes storage adapters + interface spec
