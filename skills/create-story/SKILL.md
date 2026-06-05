@@ -7,7 +7,7 @@ description: "Use when a user wants to capture a feature idea as a formal story,
 
 **Role:** Create Story — gather context, generate a story draft, and submit it to the PM tool
 
-**SCOPE BOUNDARY:** This skill creates a PM story and NOTHING else. It does **not** write code, write local files, make commits, checkout git branches, implement features, or start development. When the story is submitted, output the story URL and STOP.
+**SCOPE BOUNDARY:** This skill creates a PM story and NOTHING else. It does **not** write code, write local files, make commits, checkout git branches, implement features, or start development. When the story is submitted, output the story URL and STOP. This skill **never** creates sub-stories or subtasks — all repos and scope live in the single story.
 
 ## Arguments: $ARGUMENTS
 
@@ -70,10 +70,10 @@ Using the service briefs from Phase 0 and the story description from Phase 1, at
 - `title`: derive from the starter prompt — **never ask**
 - `originalRequest`: verbatim user starter prompt — **never ask**
 - `description`: summarize from starter prompt; explore codebase for context if vague — ask only if the request is genuinely too vague to understand after investigation
-- `repoToModify`: match to the most relevant repo brief — explore code if unclear; ask only if no repo clearly fits after investigation and there are no repos
+- `reposToModify`: a LIST of the discovered repos the feature actually touches (drawn from Phase 0 discovery) — explore code if unclear; ask only if no repo clearly fits after investigation and there are no repos. When the story spans more than one repo, tag each inferred acceptance-criteria and testing-instruction item with its repo marker (e.g. `[api]`, `[web]`); items spanning all repos are tagged `[all]`
 - `reposToReference`: infer from repo briefs (repos that provide context without being modified) — **never ask**
-- `acceptanceCriteria`: derive from repo patterns, existing tests, and feature description — **never ask** (infer up to 5 items; label uncertain ones `[Inference]`)
-- `testingInstructions`: derive from repo patterns and existing test conventions — **never ask** (infer up to 3 steps)
+- `acceptanceCriteria`: derive from repo patterns, existing tests, and feature description — **never ask** (infer up to 5 items; label uncertain ones `[Inference]`; apply per-repo tags when multiple repos are in scope)
+- `testingInstructions`: derive from repo patterns and existing test conventions — **never ask** (infer up to 3 steps; apply per-repo tags when multiple repos are in scope)
 - `story_type`: infer from context — "feature" for new capabilities, "bug" for fixes, "chore" for maintenance — **never ask**
 
 Use the `AskUserQuestion` tool only when both of these are true: (1) the answer cannot be inferred from the codebase or context, and (2) getting it wrong would produce a materially misleading story. **Stop asking after 2 questions maximum** — draft regardless of remaining ambiguity, labeling uncertain fields as `[Inference]`.
@@ -91,7 +91,7 @@ Internally hold the draft fields — do NOT emit any JSON or code block. Display
 
 **Description:** {description}
 
-**Repo to modify:** {repoToModify}
+**Repos to modify:** {reposToModify joined with ", "}
 **Repos to reference:** {reposToReference joined with ", " or "(none)"}
 
 **Acceptance Criteria:**

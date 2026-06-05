@@ -83,7 +83,7 @@ Construct the description as:
 
 {description}
 
-**Repo to modify:** {repoToModify}
+**Repos to modify:** {reposToModify joined with ", "}
 
 **Repos to reference:** {reposToReference joined with ", " or "(none)" if empty}
 
@@ -97,5 +97,7 @@ Construct the description as:
 2. {step 2}
 ...
 ```
+
+**Multi-repo stories:** When the story spans multiple repos, prefix each Acceptance Criteria and Testing Instruction item with a bracketed repo tag matching the repo/folder name (e.g. `[api]`, `[web]`). Use `[all]` or leave untagged for items that apply across all repos. Single-repo stories may omit the tag. The adapter must never create subtasks or sub-stories — all per-repo scope lives in the single story.
 
 Return: the created story's public ID (e.g., `sc-601`) and `app_url` for confirmation.

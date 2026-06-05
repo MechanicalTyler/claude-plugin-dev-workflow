@@ -55,13 +55,29 @@ If you have a story ID:
 
 1. Read `~/.claude/dev-workflow/config.json` to determine `pm_adapter` and `notes_adapter`
 2. Load PM adapter per procedure in `skills/shared/adapter-loading.md` → fetch story via PM adapter instructions
-3. Load notes adapter per procedure in `skills/shared/adapter-loading.md` → read Claude Instructions spec
-4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
-5. Use spec as the primary implementation guide
+3. Read the **"Repos to modify"** field from the story (a comma-joined list of repo/service names).
+   - **Single repo (or field absent):** follow today's single-repo flow unchanged — load one spec and continue as before.
+   - **Multiple repos:** load the Claude Instructions spec for EACH named repo via the notes adapter. If any spec is missing, STOP and ask the user to run `dev-workflow:write-spec` for that repo's story first.
+4. Load notes adapter per procedure in `skills/shared/adapter-loading.md` → read Claude Instructions spec(s) per step 3 above
+5. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
+6. Use spec(s) as the primary implementation guide
+
+### Repo Discovery
+
+Run the following to determine which checkout(s) to operate on:
+
+```bash
+git rev-parse --show-toplevel 2>/dev/null
+```
+
+- **Inside a git repo (command succeeds):** operate on this single repo only — single-repo flow, unchanged.
+- **Not inside a git repo (command fails — you are in a parent folder):** each immediate sub-folder containing a `.git` directory (glob `{CWD}/*/.git`) is a separate repo checkout. Each repo is its own checkout in its own sibling folder with its own feature branch. Collect the list of repo paths; match them to the "Repos to modify" names from the story.
 
 ---
 
 ## Implementation Planning (when story ID and spec are loaded)
+
+### Single-repo path (one repo named or field absent)
 
 After loading the Claude Instructions spec, invoke the planning skill:
 
@@ -82,8 +98,67 @@ Then invoke subagent-driven execution:
 > confirmation. Dispatch subagents and proceed.
 >
 > IMPORTANT OVERRIDE: Do NOT invoke `superpowers:using-git-worktrees`. Develop in the
-> current branch. Pass this override to any nested `finishing-a-development-branch`
-> invocation.
+> current branch within the repo's own checkout folder. Pass this override to any nested
+> `finishing-a-development-branch` invocation.
+
+### Multi-repo path (two or more repos named in "Repos to modify")
+
+Move the story to **"In Development" exactly once** — at the start of the entire run, before any per-repo work begins. Do NOT repeat this transition per repo.
+
+#### Step 1 — Infer the cross-repo dependency graph
+
+Examine each repo's Claude Instructions spec for inter-repo dependencies. A dependency exists when one repo's spec consumes an artifact that another repo's spec introduces — for example: an HTTP endpoint, a shared data contract, a published package, an event schema, or an output file. Identify all such producer → consumer edges.
+
+Topologically sort the repos into **dependency levels**:
+
+- **Level 0:** repos with no dependency on any other repo in the set (they can start immediately).
+- **Level 1:** repos whose only dependencies are on Level 0 repos.
+- **Level N:** repos whose dependencies are fully satisfied by levels 0 … N-1.
+- Repos with no detected dependency between them sit at the same level and run concurrently.
+
+Display the computed dependency graph and level groupings to the user before proceeding.
+
+#### Step 2 — Enqueue per-repo work in dependency order
+
+For each level, enqueue one planning + implementation task per repo in that level. The task list must reflect the computed order so the execution sequence is visible. Example structure:
+
+```
+Level 0 (concurrent): [repo-a, repo-b]
+Level 1 (concurrent, after Level 0): [repo-c]
+Level 2 (concurrent, after Level 1): [repo-d, repo-e]
+```
+
+#### Step 3 — Execute level by level
+
+Process each level as follows:
+
+1. **Within a level — run all repos concurrently as sub-agents.** Each sub-agent receives:
+   - The repo's checkout path and feature branch name.
+   - That repo's Claude Instructions spec as the feature description.
+   - The full Development Standards below (TDD, no placeholder code, etc.).
+   - The instruction: **Do NOT invoke `superpowers:using-git-worktrees`. Develop in the current branch within this repo's own checkout folder.**
+   - Per-repo code review instructions (see "Internal Code Review" below).
+
+2. **A later level does not start until every sub-agent in the prior level has finished successfully.** If any sub-agent in a level fails, stop, diagnose, fix, and retry that repo before advancing.
+
+3. Invoke `superpowers:writing-plans` per repo (using that repo's spec) before dispatching its sub-agent, saving the plan to `./.scratch/tmp/YYYY-MM-DD-<story-id>-<repo-name>-plan.html`.
+
+4. Invoke `superpowers:subagent-driven-development` for each repo's sub-agent:
+
+   > IMPORTANT OVERRIDE: Proceed automatically without asking the user for confirmation.
+   >
+   > IMPORTANT OVERRIDE: Do NOT invoke `superpowers:using-git-worktrees`. Develop in the
+   > current branch within the repo's own checkout folder. Pass this override to any nested
+   > `finishing-a-development-branch` invocation.
+
+#### Step 4 — Open one PR per repo
+
+After each repo's sub-agent completes and passes its internal code review, create a separate PR for that repo. Each PR must:
+
+- Reference the single shared story using the PM adapter's "Story Reference in PRs" format.
+- Follow all PR Creation Requirements below.
+
+After each PR is created, attach it to the story as an external link via the PM adapter.
 
 ---
 
@@ -136,16 +211,18 @@ When creating the PR:
 
 ## Internal Code Review (when story ID provided)
 
-After the subagent-driven implementation completes, invoke a code review before creating the PR:
+After the subagent-driven implementation completes for a repo, invoke a code review before creating that repo's PR:
 
 > Invoke Skill: `superpowers:requesting-code-review`
 >
 > Provide the code-reviewer subagent with:
-> - The Claude Instructions spec as the expected-functionality reference
+> - The Claude Instructions spec for this repo as the expected-functionality reference
 > - The story acceptance criteria
-> - The diff of all changes made during implementation
+> - The diff of all changes made during implementation in this repo
 >
 > Address any required changes before proceeding to PR creation.
+
+**Multi-repo note:** this review runs once per repo, inside that repo's sub-agent, before that repo's PR is opened. Do not wait for all repos to finish before running any review.
 
 Note: `superpowers:subagent-driven-development` includes per-task spec and quality reviews
 internally. This step adds a final whole-implementation review before the PR is opened.

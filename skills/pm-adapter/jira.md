@@ -133,7 +133,7 @@ Construct the body as:
 
 {description}
 
-**Repo to modify:** {repoToModify}
+**Repos to modify:** {reposToModify joined with ", "}
 
 **Repos to reference:** {reposToReference joined with ", " or "(none)" if empty}
 
@@ -146,6 +146,8 @@ Construct the body as:
 1. {step 1}
 2. {step 2}
 ...
+
+Note: For multi-repo stories, prefix each AC item and testing step with a bracketed repo tag (e.g. `[api]`, `[web]`); use `[all]` or leave untagged when the item applies to all repos. Never create subtasks or sub-stories — all per-repo scope lives in this single story.
 ```
 
 Return: the created issue key (e.g., `PROJ-123`) and URL for confirmation.
