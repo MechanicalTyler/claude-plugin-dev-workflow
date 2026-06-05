@@ -80,24 +80,31 @@ Pass the `model` parameter on every dispatch.
 
 The skill is resumable: re-invoking it at any time must enter the pipeline at the correct stage. Determine the entry stage from PM story state, whether a linked PR exists, the PR's review decision, and test-pr's tracking labels. Evaluate top to bottom and enter at the **first** matching stage.
 
-| Observed state | Entry stage |
-|----------------|-------------|
-| No story yet (no story ID; feature description or empty argument) | **create-story** |
-| Story exists but no spec is linked, or story state is "In Spec" / earlier | **write-spec** |
-| Spec present / story "Ready for Dev" and **no** linked PR | **start-development** |
-| Linked PR exists and its `reviewDecision` is `CHANGES_REQUESTED` | **address-pr-comments → review-pr** (review loop) |
-| Linked PR review-approved and carries the `tests-failing` label | **address-pr-comments → test-pr** (test loop) |
-| Linked PR review-approved, no `tested-in-dev`/`tests-failing` label, story not yet "Dev Complete" | **test-pr** |
-| Story "Dev Complete" (testing passed) | **finished** — nothing to do; report and stop |
+**Why the row order matters:** when test-pr fails it submits a `REQUEST_CHANGES` review, which drives the PR's aggregate `reviewDecision` to `CHANGES_REQUESTED` — the *same* value review-pr produces when review fails. The PR review decision alone therefore cannot tell a failed review from a failed test. The `tests-failing` / `tested-in-dev` labels (set by test-pr — see the test-pr label requirement) are the disambiguator, so the label rows are evaluated **before** the generic `reviewDecision == CHANGES_REQUESTED` row.
+
+| # | Observed state | Entry stage |
+|---|----------------|-------------|
+| 1 | No story yet (no story ID; feature description or empty argument) | **create-story** |
+| 2 | Story exists but no spec is linked, or story state is "In Spec" / earlier | **write-spec** |
+| 3 | Spec present / story "Ready for Dev" and **no** linked PR | **start-development** |
+| 4 | Linked PR carries the `tested-in-dev` label and no `tests-failing` label | **finished** — testing passed; report and stop |
+| 5 | Linked PR carries the `tests-failing` label | **address-pr-comments → test-pr** (test loop) |
+| 6 | Linked PR `reviewDecision` is `CHANGES_REQUESTED` (and no `tests-failing` label) | **address-pr-comments → review-pr** (review loop) |
+| 7 | Linked PR is review-approved with no `tested-in-dev`/`tests-failing` label | **test-pr** |
+| 8 | Linked PR exists but has no review decision yet (`REVIEW_REQUIRED`/null) | **review-pr** |
 
 How to gather each signal:
 
-1. **Story state:** fetch the story via the PM adapter; read its workflow state. "Dev Complete" is the authoritative signal that testing passed (test-pr owns that transition) — prefer it over inspecting individual reviews.
+1. **Story state:** fetch the story via the PM adapter; read its workflow state. Treat it as a coarse, informational signal only — the plugin's built-in stages do **not** set a "Dev Complete" (or equivalent terminal) state, so resume detection must not depend on one. (A particular PM adapter may add such a transition; if present it corroborates the label, but the label is authoritative.)
 2. **Linked PR:** use the PM adapter's "Finding PRs linked to a story" instructions. If none is linked there, fall back to `gh pr list --state all --search "{story_id}"`.
 3. **Review decision:** `gh pr view {PR_NUMBER} --json reviewDecision` for the aggregate, or the latest review's `state` (see Reading the Authoritative Review Decision below).
-4. **Test outcome:** test-pr applies a `tested-in-dev` (passed) or `tests-failing` (failed) label and moves the story to "Dev Complete" on pass. Use these labels plus the story state — not review recency — to tell the review stage and the test stage apart, since both submit reviews on the same PR.
+4. **Test outcome:** test-pr applies a `tested-in-dev` (passed) or `tests-failing` (failed) label on every run (see "test-pr label requirement" below). These labels — not review recency or `reviewDecision` — are the durable signal that distinguishes the test stage from the review stage. If a review-approved PR carries **neither** label, treat it as **not yet tested** (row 7) and state that assumption to the user.
 
 When the entry stage is mid-pipeline, run that stage, then continue forward through the remaining stages in normal order. State the detected entry stage to the user before proceeding.
+
+### test-pr label requirement
+
+This skill depends on test-pr labeling its outcome. test-pr is updated in this change to **always** add `tested-in-dev` on a passing run and `tests-failing` on a failing run (previously optional). If you run full-cycle against a build of test-pr that omits the labels, cold resume cannot distinguish "approved, not yet tested" from "approved and passed" — in that case it defaults to row 7 (re-test) and announces the re-test, which is safe but may repeat a passing test.
 
 ---
 
@@ -180,7 +187,7 @@ Dispatch a subagent (model: `opus`) whose prompt instructs it to:
 
 After it returns, read the PR's latest **test** decision authoritatively from GitHub.
 
-**State ownership:** test-pr owns the "Dev Complete" transition (it fires only when tests pass and the PR is approved). The orchestrator does not duplicate it.
+**State ownership:** test-pr owns its outcome labels — it submits the `APPROVE`/`REQUEST_CHANGES` review and applies `tested-in-dev` (pass) or `tests-failing` (fail). The orchestrator only reads these; it never labels or transitions the PR/story itself.
 
 ---
 
@@ -215,7 +222,7 @@ Take the **most recent** review (highest `submitted_at`) and read its `state`:
 Because review-pr and test-pr both submit reviews on the same PR (and as the same bot author), recency alone cannot tell their decisions apart on a PR that has both. Disambiguate by context, not author:
 
 - **Immediately after re-dispatching a specific stage**, read the newest review created since that dispatch — that one belongs to the stage you just ran. Recency is reliable here because you control the ordering.
-- **For cold resume detection** (you did not just run a stage), do NOT infer the test outcome from review recency. Use the durable signals instead: the story being "Dev Complete" means testing passed; the `tested-in-dev` / `tests-failing` labels record test-pr's last outcome; the PR `reviewDecision` reflects the review stage. See Resume / Entry Detection.
+- **For cold resume detection** (you did not just run a stage), do NOT infer the test outcome from review recency or from `reviewDecision` (a failed test and a failed review both produce `CHANGES_REQUESTED`). Use the durable signals instead: the `tested-in-dev` / `tests-failing` labels record test-pr's last outcome, and `reviewDecision` reflects the review stage only after the labels have been consulted. See Resume / Entry Detection.
 
 ---
 
@@ -227,14 +234,15 @@ Neither the review loop nor the test loop may run forever. Track an attempt coun
 
 ## Termination
 
-When testing passes (test-pr has moved the story to "Dev Complete"), stop. **Leave the PR open** — do not merge. Produce a short end-of-run summary:
+When testing passes — test-pr has submitted an `APPROVE` review and applied the `tested-in-dev` label — stop. **Leave the PR open** — do not merge. Produce a short end-of-run summary:
 
 - Story ID and title
 - PR number(s) and URL(s)
-- Final story state ("Dev Complete")
+- Final test outcome (review approved + `tested-in-dev`) and current story state
+- Per-loop fix-cycle counts, so an operator can see how many cycles each stage burned
 - Note that the PR is left open for a human to merge
 
-In autonomous mode, emit the summary as the flat key/value result defined in `standards.md` (`service-name`, `pm-key`, `pr-number`, `status`, `message`, plus the highest-signal extra keys such as `final-state`).
+In autonomous mode, emit the summary as the flat key/value result defined in `standards.md` (`service-name`, `pm-key`, `pr-number`, `status`, `message`, plus the highest-signal extra keys such as `test-result`).
 
 ---
 
@@ -244,9 +252,9 @@ The orchestrator only sequences stages; it must **never** fire a PM state transi
 
 - write-spec owns **"Ready for Dev"** (and the `claude-written` label)
 - start-development owns **"In Development"**
-- test-pr owns **"Dev Complete"**
+- test-pr owns its **review submission and `tested-in-dev`/`tests-failing` labels**
 
-The orchestrator never duplicates these transitions. Its job between stages is to read state, not to write it.
+The orchestrator never duplicates these transitions or labels. Its job between stages is to read state, not to write it.
 
 ---
 
@@ -267,5 +275,5 @@ The orchestrator then runs the review → test cycle (including the loops) **for
 - write-spec's user-approval gate was honored before development began.
 - Each non-interactive stage ran as a dispatched subagent on the model named above; create-story and write-spec ran interactively in the main agent.
 - The review loop and test loop each ran until approval/passing or until the Loop Safety Guard stopped them.
-- The story is at "Dev Complete" and the PR is left open (not merged).
+- Testing passed (review approved + `tested-in-dev` label) and the PR is left open (not merged).
 - A clear end-of-run summary was produced.
