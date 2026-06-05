@@ -37,6 +37,9 @@ Create `~/.claude/dev-workflow/config.json`:
       "vault_path": "/path/to/your/vault",
       "prompts_dir": "Engineering/Prompts"
     },
+    "local": {
+      "specs_path": "docs/specs"
+    },
     "shortcut": {
       "story_id_prefix": "sc-"
     }
@@ -44,6 +47,8 @@ Create `~/.claude/dev-workflow/config.json`:
   "deploy_command": "Run the dev CI workflow in GitHub Actions"
 }
 ```
+
+The `local` notes adapter's `specs_path` is optional. When omitted, specs default to `docs/specs/` relative to the repo root. Set it to a relative path (resolved against the repo root) or an absolute path to store specs elsewhere.
 
 ## Adapters
 
