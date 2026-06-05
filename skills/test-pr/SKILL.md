@@ -297,10 +297,14 @@ Submit formal GitHub review using the actual PR number:
 
 Include full test report in the review body.
 
-Optionally add labels to track testing status (use the actual PR number):
+**Always** label the testing outcome so downstream automation (e.g. `dev-workflow:full-cycle`'s resume detection) can distinguish a test result from a review result on the same PR. Apply exactly one label per run, matching the review decision, and clear the opposite label so the two are never both present (use the actual PR number):
+
+On a passing run (`APPROVE`):
 ```bash
-gh pr edit {PR_NUMBER} --add-label "tested-in-dev"
+gh pr edit {PR_NUMBER} --add-label "tested-in-dev" --remove-label "tests-failing"
 ```
+
+On a failing run (`REQUEST_CHANGES`):
 ```bash
-gh pr edit {PR_NUMBER} --add-label "tests-failing"
+gh pr edit {PR_NUMBER} --add-label "tests-failing" --remove-label "tested-in-dev"
 ```

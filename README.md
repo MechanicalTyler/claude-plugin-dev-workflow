@@ -23,6 +23,7 @@ The superpowers plugin provides core methodology skills (TDD, systematic debuggi
 | `/start start-debugging` | start-debugging | Debug-first workflow (describe bug → investigate → TDD fix) |
 | `/start start-debugging story-id --rework` | start-debugging | Read story comments as rework items → fix → new PR |
 | `/start create-story` | create-story | Interview user → draft story → submit to PM tool |
+| `/start full-cycle [story-id\|description]` | full-cycle | Drive the whole lifecycle end to end: create-story → write-spec → start-development → review-pr → test-pr, looping until tests pass |
 
 ## Configuration
 
