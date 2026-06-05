@@ -98,6 +98,6 @@ Construct the description as:
 ...
 ```
 
-**Multi-repo stories:** When the story spans multiple repos, prefix each Acceptance Criteria and Testing Instruction item with a bracketed repo tag matching the repo/folder name (e.g. `[api]`, `[web]`). Use `[all]` or leave untagged for items that apply across all repos. Single-repo stories may omit the tag. The adapter must never create subtasks or sub-stories — all per-repo scope lives in the single story.
+**Multi-repo stories:** follow the Multi-repo story contract in `skills/pm-adapter/interface.md` (repo tags on AC/testing items; never create subtasks or sub-stories).
 
 Return: the created story's public ID (e.g., `sc-601`) and `app_url` for confirmation.

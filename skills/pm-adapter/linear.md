@@ -112,7 +112,7 @@ Construct the description as:
 2. {step 2}
 ...
 
-Note: For multi-repo stories, prefix each AC item and testing step with a bracketed repo tag (e.g. `[api]`, `[web]`); use `[all]` or leave untagged when the item applies to all repos. Never create subtasks or sub-stories — all per-repo scope lives in this single story.
+Note: For multi-repo stories, follow the Multi-repo story contract in `skills/pm-adapter/interface.md` (repo tags on AC/testing items; never create subtasks or sub-stories).
 ```
 
 Return: the created issue identifier (e.g., `LIN-42`) and URL for confirmation.

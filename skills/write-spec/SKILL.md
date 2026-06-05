@@ -19,6 +19,8 @@ Read `skills/shared/standards.md` — these mandatory rules govern this entire s
 
 Read `skills/shared/adapter-loading.md` — adapter loading procedures referenced in Phase 1.
 
+Read `skills/shared/repo-discovery.md` — repo discovery procedure referenced in Phase 3.
+
 ---
 
 ## Phase 1: Load Adapters
@@ -62,18 +64,9 @@ Use PM adapter to fetch story by ID. Capture:
 
 If the story contains screenshots, mockup images, or visual attachments you cannot access — STOP and ask the user to describe them before proceeding.
 
-### Repo Discovery (mirrors create-story Phase 0)
+### Repo Discovery
 
-Run `git rev-parse --show-toplevel` to determine context:
-
-- **Inside a single git repo:** operate on that repo only. The "Repos to modify" field is informational; behave exactly as today (single-repo path, no loop). This preserves full backward compatibility.
-- **Not inside a git repo (parent/workspace folder):** glob `{CWD}/*/.git` to discover repos. Each immediate sub-folder containing `.git` is a candidate repo. Cross-reference this list against the story's "Repos to modify" field:
-  - If "Repos to modify" is present: use only the listed repos (matched by folder name or service name).
-  - If "Repos to modify" is absent or empty: use all discovered repos.
-
-**Per-item repo tags:** Acceptance criteria and testing-instruction items may be prefixed with a bracketed repo marker (e.g. `[api]`, `[web]`). Items tagged `[all]` or untagged apply to all repos. Use these tags in Phase 5–10 to filter scope per repo.
-
-**Single-repo shortcut:** When exactly one repo is in scope (either because you are inside a git repo, or the story names exactly one repo), skip the per-repo loop entirely and proceed with existing single-repo behavior unchanged.
+Determine the repo set per `skills/shared/repo-discovery.md` (two-path detection, the "Repos to modify" precedence rules, per-item repo tags, and the single-repo shortcut). Use the per-item repo tags in Phases 5–10 to filter scope per repo.
 
 ---
 
@@ -340,10 +333,10 @@ After user approval, update the **single original PM story** (not per-repo) to r
 Use the PM adapter to add a comment or description update to the story. The comment should include one entry per repo spec:
 - The spec file path for each repo (relative to that repo's own root — the repo is identified by its tag, since each repo's spec lives at the same path within its own checkout)
 - A brief summary of what each spec covers
-- Example format (multi-repo):
+- Example format (multi-repo) — each spec lives at the same relative path inside its own repo checkout, so qualify each by its checkout folder:
   > **Implementation Specs Written**
-  > - `[api]` Spec: `docs/specs/{story-id}.html` — Covers: [1-2 sentence summary]
-  > - `[web]` Spec: `docs/specs/{story-id}.html` — Covers: [1-2 sentence summary]
+  > - `[api]` Spec: `api/docs/specs/{story-id}.html` — Covers: [1-2 sentence summary]
+  > - `[web]` Spec: `web/docs/specs/{story-id}.html` — Covers: [1-2 sentence summary]
   > Written by: Claude Write Spec workflow
 
 If the PM adapter supports attaching files or adding external links, prefer adding one external link per repo spec (not per story). If it supports only one external link, add a comment instead with all paths.
@@ -351,6 +344,8 @@ If the PM adapter supports attaching files or adding external links, prefer addi
 If the PM adapter does not support comments or updates — note this to the user and provide all spec paths so they can link them manually.
 
 **"Ready for Dev" transition and `claude-written` label:** Fire these **ONCE** on the single story after all specs are linked. State transitions and labels are applied once per run, not per repo.
+
+**State ownership:** write-spec owns the "Ready for Dev" transition; start-development owns the "In Development" transition. Each skill fires only its own transition — never the other's.
 
 ---
 

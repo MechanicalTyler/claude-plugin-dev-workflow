@@ -11,6 +11,8 @@ Read `skills/shared/standards.md` — these mandatory rules govern this entire s
 
 Read `skills/shared/adapter-loading.md` — adapter loading procedures referenced in PM Context.
 
+Read `skills/shared/repo-discovery.md` — repo discovery procedure referenced in Repo Discovery.
+
 Read the CLAUDE.md file in this repository before starting.
 
 ---
@@ -64,14 +66,7 @@ If you have a story ID:
 
 ### Repo Discovery
 
-Run the following to determine which checkout(s) to operate on:
-
-```bash
-git rev-parse --show-toplevel 2>/dev/null
-```
-
-- **Inside a git repo (command succeeds):** operate on this single repo only — single-repo flow, unchanged.
-- **Not inside a git repo (command fails — you are in a parent folder):** each immediate sub-folder containing a `.git` directory (glob `{CWD}/*/.git`) is a separate repo checkout. Each repo is its own checkout in its own sibling folder with its own feature branch. Collect the list of repo paths; match them to the "Repos to modify" names from the story.
+Determine which checkout(s) to operate on per `skills/shared/repo-discovery.md` (two-path detection, the "Repos to modify" precedence rules, per-item repo tags, and the single-repo shortcut). Each Path-2 repo is its own checkout in its own sibling folder with its own feature branch.
 
 ---
 
@@ -104,6 +99,8 @@ Then invoke subagent-driven execution:
 ### Multi-repo path (two or more repos named in "Repos to modify")
 
 Move the story to **"In Development" exactly once** — at the start of the entire run, before any per-repo work begins. Do NOT repeat this transition per repo.
+
+**State ownership:** start-development owns the "In Development" transition; write-spec owns "Ready for Dev". Each skill fires only its own transition — never the other's.
 
 #### Step 1 — Infer the cross-repo dependency graph
 

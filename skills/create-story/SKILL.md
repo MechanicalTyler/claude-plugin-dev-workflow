@@ -17,16 +17,15 @@ Read `skills/shared/standards.md` — these mandatory rules govern this entire s
 
 Read `skills/shared/adapter-loading.md` — adapter loading procedure referenced in Phase 2.
 
+Read `skills/shared/repo-discovery.md` — repo discovery procedure referenced in Phase 0.
+
 ---
 
 ## Phase 0: Discover Repos & Load Context
 
 1. Determine the workspace root — use the current working directory
-2. Find repos using two-path detection:
-   - Use the Bash tool to run: `git rev-parse --show-toplevel`
-   - **Path 1 — inside a repo:** If the output is a non-empty absolute path (e.g. `/workspace/my-service`), you are inside a git repo. Use that path as the single repo root. Skip all sub-folder scanning. Proceed to step 3 with this one repo.
-   - **Path 2 — parent folder:** If the output contains "not a git repository" or is empty, you are not inside a git repo. Use Glob to find `{CWD}/*/.git` (one level deep only). Each matching parent folder is a repo root. Proceed to step 3 with all discovered repos.
-3. For each repo found, determine the **service name** — the service name is identical to the folder name and repository name (e.g., repo at `/workspace/my-service` → service name is `my-service`)
+2. Find repos using the two-path detection in `skills/shared/repo-discovery.md` (Path 1 → one repo; Path 2 → all discovered repos)
+3. For each repo found, determine the **service name** per `skills/shared/repo-discovery.md` (identical to folder/repo name, e.g. `/workspace/my-service` → `my-service`)
 4. For each repo, read `CLAUDE.md` from the repo root:
    - If `CLAUDE.md` exists: extract the service purpose — look for a `## Project Overview` section first; if absent, use the first substantive paragraph (skip headings and blank lines)
    - If `CLAUDE.md` is absent: note a warning — "⚠️ No CLAUDE.md found for {service-name} — skipping context for this service" — and continue
