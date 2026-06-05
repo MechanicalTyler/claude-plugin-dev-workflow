@@ -216,8 +216,10 @@ After the subagent-driven implementation completes for a repo, invoke a code rev
 
 **Multi-repo note:** this review runs once per repo, inside that repo's sub-agent as part of its self-review, before the sub-agent reports back. The main agent then opens that repo's PR (Step 4). Do not wait for all repos to finish before reviewing each one.
 
-Note: `superpowers:subagent-driven-development` includes per-task spec and quality reviews
-internally. This step adds a final whole-implementation review before the PR is opened.
+Note (single-repo path only): `superpowers:subagent-driven-development` includes per-task spec
+and quality reviews internally. This step adds a final whole-implementation review before the PR
+is opened. In the multi-repo path the per-repo sub-agents implement directly (no nested
+subagent-driven-development), so this review is their first independent review — run it per repo.
 
 ---
 
