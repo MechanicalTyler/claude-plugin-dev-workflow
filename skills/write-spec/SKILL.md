@@ -36,7 +36,7 @@ Parse story ID from `$ARGUMENTS`:
 
 ## Phase 2: Check for Existing Spec
 
-**This phase runs per repo** (see Phase 3 for repo discovery). For each repo in scope, use the notes adapter to check whether a spec already exists for this story ID in that repo's spec location.
+**This check runs per repo, after Phase 3 determines the repo set.** It is listed here for grouping, but cannot execute until the repos in scope are known: for a single repo, run it immediately after Phase 3; for multiple repos, run it at the start of each Phase 5–10 loop iteration. For each repo in scope, use the notes adapter to check whether a spec already exists for this story ID in that repo's spec location.
 
 - If an **existing spec is found** for a repo: STOP and ask the user:
   > "A spec already exists for [story-id] in repo [repo-name] at [path]. Would you like to:
@@ -47,7 +47,7 @@ Parse story ID from `$ARGUMENTS`:
   > Wait for the user to choose an option before proceeding for that repo. If you are unable to ask the user (e.g. running non-interactively), notify them and skip:
   > "A spec already exists for [story-id] in repo [repo-name] at [path]. Skipping spec creation for this repo."
 
-- If **no existing spec is found**: continue to Phase 3.
+- If **no existing spec is found**: proceed (to Phase 3 if not yet run, otherwise continue spec'ing this repo).
 
 ---
 
@@ -98,6 +98,7 @@ Before the ULTRATHINK deep-dive, invoke brainstorming to surface unclear require
 > **When multiple repos are in scope** (see Phase 3 repo discovery), run Phases 5–10 once for each repo in the "Repos to modify" list, sequentially, driven by the main agent (NO sub-agents). Complete all phases for repo N before starting repo N+1.
 >
 > For each iteration:
+> - Run the Phase 2 existing-spec check for this repo first. If the user chooses to skip the repo, move to the next iteration without spec'ing it.
 > - Set the active repo root to that repo's directory.
 > - Filter acceptance criteria and testing instructions to items tagged `[{repo-name}]`, `[all]`, or untagged.
 > - The notes adapter resolves `repo_root` to the repo currently being specced.

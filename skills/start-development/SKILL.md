@@ -55,11 +55,11 @@ If you have a story ID:
 
 1. Read `~/.claude/dev-workflow/config.json` to determine `pm_adapter` and `notes_adapter`
 2. Load PM adapter per procedure in `skills/shared/adapter-loading.md` → fetch story via PM adapter instructions
-3. Read the **"Repos to modify"** field from the story (a comma-joined list of repo/service names).
+3. Load notes adapter per procedure in `skills/shared/adapter-loading.md`
+4. Read the **"Repos to modify"** field from the story (a comma-joined list of repo/service names), then load the Claude Instructions spec(s) via the notes adapter:
    - **Single repo (or field absent):** follow today's single-repo flow unchanged — load one spec and continue as before.
-   - **Multiple repos:** load the Claude Instructions spec for EACH named repo via the notes adapter. If any spec is missing, STOP and ask the user to run `dev-workflow:write-spec` for that repo's story first.
-4. Load notes adapter per procedure in `skills/shared/adapter-loading.md` → read Claude Instructions spec(s) per step 3 above
-5. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
+   - **Multiple repos:** load the spec for EACH named repo. If any spec is missing, STOP and ask the user to run `dev-workflow:write-spec` for the story first.
+5. **If a required spec is not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
 6. Use spec(s) as the primary implementation guide
 
 ### Repo Discovery
@@ -130,26 +130,21 @@ Level 2 (concurrent, after Level 1): [repo-d, repo-e]
 
 #### Step 3 — Execute level by level
 
+**All sub-agent dispatch originates from this main (orchestrator) agent.** Claude Code sub-agents cannot themselves spawn sub-agents (they have no Task tool), so each per-repo sub-agent must perform its own implementation directly rather than delegating further. This trades away per-task sub-agent parallelism inside a single repo (not possible in Claude Code) but preserves cross-repo concurrency across a level.
+
 Process each level as follows:
 
-1. **Within a level — run all repos concurrently as sub-agents.** Each sub-agent receives:
+1. **Before dispatching the level,** invoke `superpowers:writing-plans` once per repo in that level (using that repo's spec), saving each plan to `./.scratch/tmp/YYYY-MM-DD-<story-id>-<repo-name>-plan.html`.
+
+2. **Within a level — dispatch one sub-agent per repo, concurrently** (up to Claude Code's concurrent sub-agent cap). Each sub-agent receives:
    - The repo's checkout path and feature branch name.
-   - That repo's Claude Instructions spec as the feature description.
+   - That repo's Claude Instructions spec and the plan from step 1 as the implementation guide.
    - The full Development Standards below (TDD, no placeholder code, etc.).
-   - The instruction: **Do NOT invoke `superpowers:using-git-worktrees`. Develop in the current branch within this repo's own checkout folder.**
-   - Per-repo code review instructions (see "Internal Code Review" below).
+   - The instruction: **Implement the plan directly — for each task write a failing test, make it pass, refactor, and commit. Do NOT invoke `superpowers:subagent-driven-development`, `superpowers:executing-plans`, or any skill that spawns sub-agents; you are a leaf sub-agent and cannot dispatch further sub-agents.**
+   - The instruction: **Do NOT invoke `superpowers:using-git-worktrees`. Develop in the current branch within this repo's own checkout folder.** Pass this override to any nested `finishing-a-development-branch` invocation.
+   - Per-repo internal code review instructions (see "Internal Code Review" below). The sub-agent implements and self-reviews, then reports back — PR creation happens in Step 4 from the main agent.
 
-2. **A later level does not start until every sub-agent in the prior level has finished successfully.** If any sub-agent in a level fails, stop, diagnose, fix, and retry that repo before advancing.
-
-3. Invoke `superpowers:writing-plans` per repo (using that repo's spec) before dispatching its sub-agent, saving the plan to `./.scratch/tmp/YYYY-MM-DD-<story-id>-<repo-name>-plan.html`.
-
-4. Invoke `superpowers:subagent-driven-development` for each repo's sub-agent:
-
-   > IMPORTANT OVERRIDE: Proceed automatically without asking the user for confirmation.
-   >
-   > IMPORTANT OVERRIDE: Do NOT invoke `superpowers:using-git-worktrees`. Develop in the
-   > current branch within the repo's own checkout folder. Pass this override to any nested
-   > `finishing-a-development-branch` invocation.
+3. **A later level does not start until every sub-agent in the prior level has finished successfully.** If any sub-agent in a level fails, stop, diagnose, fix, and retry that repo before advancing.
 
 #### Step 4 — Open one PR per repo
 
@@ -222,7 +217,7 @@ After the subagent-driven implementation completes for a repo, invoke a code rev
 >
 > Address any required changes before proceeding to PR creation.
 
-**Multi-repo note:** this review runs once per repo, inside that repo's sub-agent, before that repo's PR is opened. Do not wait for all repos to finish before running any review.
+**Multi-repo note:** this review runs once per repo, inside that repo's sub-agent as part of its self-review, before the sub-agent reports back. The main agent then opens that repo's PR (Step 4). Do not wait for all repos to finish before reviewing each one.
 
 Note: `superpowers:subagent-driven-development` includes per-task spec and quality reviews
 internally. This step adds a final whole-implementation review before the PR is opened.
