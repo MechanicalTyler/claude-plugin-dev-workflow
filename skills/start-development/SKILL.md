@@ -11,6 +11,8 @@ Read `skills/shared/standards.md` — these mandatory rules govern this entire s
 
 Read `skills/shared/adapter-loading.md` — adapter loading procedures referenced in PM Context.
 
+Read `skills/shared/repo-discovery.md` — repo discovery procedure referenced in Repo Discovery.
+
 Read the CLAUDE.md file in this repository before starting.
 
 ---
@@ -55,13 +57,22 @@ If you have a story ID:
 
 1. Read `~/.claude/dev-workflow/config.json` to determine `pm_adapter` and `notes_adapter`
 2. Load PM adapter per procedure in `skills/shared/adapter-loading.md` → fetch story via PM adapter instructions
-3. Load notes adapter per procedure in `skills/shared/adapter-loading.md` → read Claude Instructions spec
-4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
-5. Use spec as the primary implementation guide
+3. Load notes adapter per procedure in `skills/shared/adapter-loading.md`
+4. Read the **"Repos to modify"** field from the story (a comma-joined list of repo/service names), then load the Claude Instructions spec(s) via the notes adapter:
+   - **Single repo (or field absent):** follow today's single-repo flow unchanged — load one spec and continue as before.
+   - **Multiple repos:** load the spec for EACH named repo. If any spec is missing, STOP and ask the user to run `dev-workflow:write-spec` for the story first.
+5. **If a required spec is not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
+6. Use spec(s) as the primary implementation guide
+
+### Repo Discovery
+
+Determine which checkout(s) to operate on per `skills/shared/repo-discovery.md` (two-path detection, the "Repos to modify" precedence rules, per-item repo tags, and the single-repo shortcut). Each Path-2 repo is its own checkout in its own sibling folder with its own feature branch.
 
 ---
 
 ## Implementation Planning (when story ID and spec are loaded)
+
+### Single-repo path (one repo named or field absent)
 
 After loading the Claude Instructions spec, invoke the planning skill:
 
@@ -82,8 +93,64 @@ Then invoke subagent-driven execution:
 > confirmation. Dispatch subagents and proceed.
 >
 > IMPORTANT OVERRIDE: Do NOT invoke `superpowers:using-git-worktrees`. Develop in the
-> current branch. Pass this override to any nested `finishing-a-development-branch`
-> invocation.
+> current branch within the repo's own checkout folder. Pass this override to any nested
+> `finishing-a-development-branch` invocation.
+
+### Multi-repo path (two or more repos named in "Repos to modify")
+
+Move the story to **"In Development" exactly once** — at the start of the entire run, before any per-repo work begins. Do NOT repeat this transition per repo.
+
+**State ownership:** start-development owns the "In Development" transition; write-spec owns "Ready for Dev". Each skill fires only its own transition — never the other's.
+
+#### Step 1 — Infer the cross-repo dependency graph
+
+Examine each repo's Claude Instructions spec for inter-repo dependencies. A dependency exists when one repo's spec consumes an artifact that another repo's spec introduces — for example: an HTTP endpoint, a shared data contract, a published package, an event schema, or an output file. Identify all such producer → consumer edges.
+
+Topologically sort the repos into **dependency levels**:
+
+- **Level 0:** repos with no dependency on any other repo in the set (they can start immediately).
+- **Level 1:** repos whose only dependencies are on Level 0 repos.
+- **Level N:** repos whose dependencies are fully satisfied by levels 0 … N-1.
+- Repos with no detected dependency between them sit at the same level and run concurrently.
+
+Display the computed dependency graph and level groupings to the user before proceeding.
+
+#### Step 2 — Enqueue per-repo work in dependency order
+
+For each level, enqueue one planning + implementation task per repo in that level. The task list must reflect the computed order so the execution sequence is visible. Example structure:
+
+```
+Level 0 (concurrent): [repo-a, repo-b]
+Level 1 (concurrent, after Level 0): [repo-c]
+Level 2 (concurrent, after Level 1): [repo-d, repo-e]
+```
+
+#### Step 3 — Execute level by level
+
+**All sub-agent dispatch originates from this main (orchestrator) agent.** Claude Code sub-agents cannot themselves spawn sub-agents (they have no Task tool), so each per-repo sub-agent must perform its own implementation directly rather than delegating further. This trades away per-task sub-agent parallelism inside a single repo (not possible in Claude Code) but preserves cross-repo concurrency across a level.
+
+Process each level as follows:
+
+1. **Before dispatching the level,** invoke `superpowers:writing-plans` once per repo in that level (using that repo's spec), saving each plan to `./.scratch/tmp/YYYY-MM-DD-<story-id>-<repo-name>-plan.html`.
+
+2. **Within a level — dispatch one sub-agent per repo, concurrently** (up to Claude Code's concurrent sub-agent cap). Each sub-agent receives:
+   - The repo's checkout path and feature branch name.
+   - That repo's Claude Instructions spec and the plan from step 1 as the implementation guide.
+   - The full Development Standards below (TDD, no placeholder code, etc.).
+   - The instruction: **Implement the plan directly — for each task write a failing test, make it pass, refactor, and commit. Do NOT invoke `superpowers:subagent-driven-development`, `superpowers:executing-plans`, or any skill that spawns sub-agents; you are a leaf sub-agent and cannot dispatch further sub-agents.**
+   - The instruction: **Do NOT invoke `superpowers:using-git-worktrees`. Develop in the current branch within this repo's own checkout folder.** Pass this override to any nested `finishing-a-development-branch` invocation.
+   - Per-repo internal code review instructions (see "Internal Code Review" below). The sub-agent implements and self-reviews, then reports back — PR creation happens in Step 4 from the main agent.
+
+3. **A later level does not start until every sub-agent in the prior level has finished successfully.** If any sub-agent in a level fails, stop, diagnose, fix, and retry that repo before advancing.
+
+#### Step 4 — Open one PR per repo
+
+After each repo's sub-agent completes and passes its internal code review, create a separate PR for that repo. Each PR must:
+
+- Reference the single shared story using the PM adapter's "Story Reference in PRs" format.
+- Follow all PR Creation Requirements below.
+
+After each PR is created, attach it to the story as an external link via the PM adapter.
 
 ---
 
@@ -136,19 +203,23 @@ When creating the PR:
 
 ## Internal Code Review (when story ID provided)
 
-After the subagent-driven implementation completes, invoke a code review before creating the PR:
+After the subagent-driven implementation completes for a repo, invoke a code review before creating that repo's PR:
 
 > Invoke Skill: `superpowers:requesting-code-review`
 >
 > Provide the code-reviewer subagent with:
-> - The Claude Instructions spec as the expected-functionality reference
+> - The Claude Instructions spec for this repo as the expected-functionality reference
 > - The story acceptance criteria
-> - The diff of all changes made during implementation
+> - The diff of all changes made during implementation in this repo
 >
 > Address any required changes before proceeding to PR creation.
 
-Note: `superpowers:subagent-driven-development` includes per-task spec and quality reviews
-internally. This step adds a final whole-implementation review before the PR is opened.
+**Multi-repo note:** this review runs once per repo, inside that repo's sub-agent as part of its self-review, before the sub-agent reports back. The main agent then opens that repo's PR (Step 4). Do not wait for all repos to finish before reviewing each one.
+
+Note (single-repo path only): `superpowers:subagent-driven-development` includes per-task spec
+and quality reviews internally. This step adds a final whole-implementation review before the PR
+is opened. In the multi-repo path the per-repo sub-agents implement directly (no nested
+subagent-driven-development), so this review is their first independent review — run it per repo.
 
 ---
 

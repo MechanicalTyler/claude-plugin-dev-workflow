@@ -133,7 +133,7 @@ Construct the body as:
 
 {description}
 
-**Repo to modify:** {repoToModify}
+**Repos to modify:** {reposToModify joined with ", "}
 
 **Repos to reference:** {reposToReference joined with ", " or "(none)" if empty}
 
@@ -146,6 +146,8 @@ Construct the body as:
 1. {step 1}
 2. {step 2}
 ...
+
+Note: For multi-repo stories, follow the Multi-repo story contract in `skills/pm-adapter/interface.md` (repo tags on AC/testing items; never create subtasks or sub-stories).
 ```
 
 Return: the created issue key (e.g., `PROJ-123`) and URL for confirmation.

@@ -19,6 +19,8 @@ Read `skills/shared/standards.md` — these mandatory rules govern this entire s
 
 Read `skills/shared/adapter-loading.md` — adapter loading procedures referenced in Phase 1.
 
+Read `skills/shared/repo-discovery.md` — repo discovery procedure referenced in Phase 3.
+
 ---
 
 ## Phase 1: Load Adapters
@@ -36,30 +38,35 @@ Parse story ID from `$ARGUMENTS`:
 
 ## Phase 2: Check for Existing Spec
 
-Use the notes adapter to check whether a spec already exists for this story ID.
+**This check runs per repo, after Phase 3 determines the repo set.** It is listed here for grouping, but cannot execute until the repos in scope are known: for a single repo, run it immediately after Phase 3; for multiple repos, run it at the start of each Phase 5–10 loop iteration. For each repo in scope, use the notes adapter to check whether a spec already exists for this story ID in that repo's spec location.
 
-- If an **existing spec is found**: STOP and ask the user:
-  > "A spec already exists for [story-id] at [path]. Would you like to:
+- If an **existing spec is found** for a repo: STOP and ask the user:
+  > "A spec already exists for [story-id] in repo [repo-name] at [path]. Would you like to:
   > 1. Use it as additional context and continue writing a new spec
   > 2. Update/overwrite the existing spec
-  > 3. Cancel — keep the existing spec unchanged"
+  > 3. Skip this repo — keep the existing spec unchanged"
   >
-  > Wait for the user to choose an option before proceeding. If you are unable to ask the user (e.g. running non-interactively), notify them and skip:
-  > "A spec already exists for [story-id] at [path]. Skipping spec creation."
+  > Wait for the user to choose an option before proceeding for that repo. If you are unable to ask the user (e.g. running non-interactively), notify them and skip:
+  > "A spec already exists for [story-id] in repo [repo-name] at [path]. Skipping spec creation for this repo."
 
-- If **no existing spec is found**: continue to Phase 2.
+- If **no existing spec is found**: proceed (to Phase 3 if not yet run, otherwise continue spec'ing this repo).
 
 ---
 
-## Phase 3: Fetch Story
+## Phase 3: Fetch Story and Determine Repos
 
 Use PM adapter to fetch story by ID. Capture:
 - Story title and description
 - Acceptance criteria (explicit and implicit)
 - Story type (feature/bug/chore)
 - Existing comments
+- **"Repos to modify"** field — a comma-joined list of repo/service names (e.g. `api, web, worker`)
 
 If the story contains screenshots, mockup images, or visual attachments you cannot access — STOP and ask the user to describe them before proceeding.
+
+### Repo Discovery
+
+Determine the repo set per `skills/shared/repo-discovery.md` (two-path detection, the "Repos to modify" precedence rules, per-item repo tags, and the single-repo shortcut). Use the per-item repo tags in Phases 5–10 to filter scope per repo.
 
 ---
 
@@ -79,30 +86,46 @@ Before the ULTRATHINK deep-dive, invoke brainstorming to surface unclear require
 
 ---
 
+## Phases 5–10: Per-Repo Sequential Loop
+
+> **When multiple repos are in scope** (see Phase 3 repo discovery), run Phases 5–10 once for each repo in the "Repos to modify" list, sequentially, driven by the main agent (NO sub-agents). Complete all phases for repo N before starting repo N+1.
+>
+> For each iteration:
+> - Run the Phase 2 existing-spec check for this repo first. If the user chooses to skip the repo, move to the next iteration without spec'ing it.
+> - Set the active repo root to that repo's directory.
+> - Filter acceptance criteria and testing instructions to items tagged `[{repo-name}]`, `[all]`, or untagged.
+> - The notes adapter resolves `repo_root` to the repo currently being specced.
+> - On completion of the loop, proceed to the **User Approval Gate** (after Phase 10) before Phase 11.
+>
+> **When only one repo is in scope**, execute Phases 5–10 once with no loop overhead — existing behavior unchanged.
+
+---
+
 ## Phase 5: ULTRATHINK — Story Analysis and Codebase Investigation
 
-**SCOPE BOUNDARY: You are writing a spec for THIS service only.**
-- Detect the current service: `git rev-parse --show-toplevel | xargs basename`
-- All codebase research MUST target files in the current repository
-- Other services or systems mentioned in the story are **reference context only** — do not write implementation steps, file changes, or instructions for them
-- If the story requires coordinated changes across services, note it as: `[Cross-service dependency: {service-name} — out of scope for this spec]`
+**SCOPE BOUNDARY: You are writing a spec for the repo currently being specced.**
+- Detect the active repo: `git -C {repo_root} rev-parse --show-toplevel | xargs basename`
+- All codebase research MUST target files in the repo currently being specced
+- Other repos or services listed in "Repos to modify" will each get their own spec in their own loop iteration — do not write implementation steps for them in this iteration
+- Services or systems NOT in the "Repos to modify" list are **reference context only** — do not write implementation steps, file changes, or instructions for them
+- If the story requires coordinated changes across services, note cross-repo dependencies as: `[Cross-repo dependency: {service-name} — covered in that repo's spec]` for repos in scope, or `[Cross-service dependency: {service-name} — out of scope for this spec]` for repos not in scope
 
 **Story Analysis:**
 - Read the complete story thoroughly
 - Identify business goals and user needs
-- Extract acceptance criteria (explicit and implicit)
+- Extract acceptance criteria relevant to this repo (per repo tags from Phase 3)
 - Assess technical feasibility and complexity
 - Identify ambiguities requiring clarification
 
-**Codebase Investigation (this service only):**
-- Use Grep/Glob to find relevant code files in the current repository
+**Codebase Investigation (this repo only):**
+- Use Grep/Glob to find relevant code files in the repo currently being specced
 - Identify existing patterns and conventions
 - Locate similar features for reference
 - Understand current architecture and integration points
 - Document specific files, functions, and line numbers
 
 **Required Output:**
-- Minimum 3-5 relevant file references with explanations (all from THIS service)
+- Minimum 3-5 relevant file references with explanations (all from the repo currently being specced)
 - Format: `` `path/to/file.rs:123-145` — [Feature name] — Uses pattern X for [purpose] ``
 
 ---
@@ -266,29 +289,63 @@ The spec is a human-readable artifact saved to a local file, so it must be a **s
 ```
 
 Then use the notes adapter to write this spec:
-- Detect service name: `git rev-parse --show-toplevel | xargs basename`
-- Follow notes adapter instructions to write the spec to the correct location
+- Service name is the basename of the repo currently being specced (`git -C {repo_root} rev-parse --show-toplevel | xargs basename`)
+- The notes adapter resolves `repo_root` to the repo currently being specced
+- Follow notes adapter instructions to write the spec to the correct location within that repo
 
-Confirm the spec was written and provide the path to the user.
+Record the spec path for use in the approval gate and Phase 11. When in the per-repo loop, do NOT confirm to the user after each individual spec — accumulate all paths and present them together at the approval gate.
 
 ---
 
-## Phase 11: Link Spec to PM Ticket
+## User Approval Gate
 
-After the spec file is saved, update the original PM story to reference it:
+> **This gate runs after all per-repo specs are written (after the Phase 5–10 loop completes) and BEFORE Phase 11.** Do not proceed to Phase 11 without passing this gate.
 
-Use the PM adapter to add a comment or description update to the story. The comment should include:
-- The spec file path (relative to the repo root)
-- A brief summary of what the spec covers
-- Example format:
-  > **Implementation Spec Written**
-  > Spec: `docs/specs/{service-name}/{story-id}.html`
-  > Covers: [1-2 sentence summary of implementation approach]
+**Interactive mode:**
+
+Present all generated specs to the user in a summary table:
+
+| Repo | Spec Path |
+|------|-----------|
+| [repo-name] | [path/to/spec.html] |
+| … | … |
+
+Ask:
+> "The above specs have been written. Please review them and let me know:
+> 1. Approve all — proceed to link specs and mark the story ready for development
+> 2. Request changes to specific specs — describe what to revise"
+
+- If the user **approves**: proceed to Phase 11.
+- If the user **requests changes**: revise only the affected specs (re-run Phases 5–10 for those repos), re-present the updated specs, and repeat this gate. Do not proceed to Phase 11 until the user explicitly approves.
+
+**Autonomous mode (cannot ask):**
+
+Record all spec paths as written. Output a summary noting that user approval was skipped due to non-interactive execution, and list each repo and spec path. Proceed directly to Phase 11.
+
+**Single-repo shortcut:** When only one repo is in scope, the approval gate still applies — present the single spec path and ask for approval before linking.
+
+---
+
+## Phase 11: Link Specs to PM Ticket
+
+After user approval, update the **single original PM story** (not per-repo) to reference all generated specs.
+
+Use the PM adapter to add a comment or description update to the story. The comment should include one entry per repo spec:
+- The spec file path for each repo (relative to that repo's own root — the repo is identified by its tag, since each repo's spec lives at the same path within its own checkout)
+- A brief summary of what each spec covers
+- Example format (multi-repo) — each spec lives at the same relative path inside its own repo checkout, so qualify each by its checkout folder:
+  > **Implementation Specs Written**
+  > - `[api]` Spec: `api/docs/specs/{story-id}.html` — Covers: [1-2 sentence summary]
+  > - `[web]` Spec: `web/docs/specs/{story-id}.html` — Covers: [1-2 sentence summary]
   > Written by: Claude Write Spec workflow
 
-If the PM adapter supports attaching files or adding external links, prefer that over a comment.
+If the PM adapter supports attaching files or adding external links, prefer adding one external link per repo spec (not per story). If it supports only one external link, add a comment instead with all paths.
 
-If the PM adapter does not support comments or updates — note this to the user and provide the spec path so they can link it manually.
+If the PM adapter does not support comments or updates — note this to the user and provide all spec paths so they can link them manually.
+
+**"Ready for Dev" transition and `claude-written` label:** Fire these **ONCE** on the single story after all specs are linked. State transitions and labels are applied once per run, not per repo.
+
+**State ownership:** write-spec owns the "Ready for Dev" transition; start-development owns the "In Development" transition. Each skill fires only its own transition — never the other's.
 
 ---
 
@@ -301,6 +358,8 @@ Read and follow the adversarial review procedure in `skills/shared/adversarial-r
 - `review_context`: the full Claude Instructions spec content written in Phase 10
 
 The adversarial agent verifies the spec completely and accurately captures all story requirements, acceptance criteria, and testing instructions. It checks that no story requirements were dropped, watered down, or misinterpreted.
+
+**Multi-repo:** run this review once per generated spec, passing that repo's spec as `review_context`. Filter the story's acceptance criteria and testing items to those tagged for that repo (plus `[all]`) when forming expectations, so each repo's spec is judged only against the requirements it owns.
 
 ---
 
