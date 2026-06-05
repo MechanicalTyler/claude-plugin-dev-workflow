@@ -80,12 +80,37 @@ Use formatting only when it improves reading.
 Short paragraphs by default.
 Use digits for numbers: 3 years, 10 tools, 500 users.
 No em dashes. Use periods, commas, colons, semicolons, or parentheses.
+No curly quotes. Use straight quotation marks and apostrophes: " and '. This covers curly double quotes, curly single quotes, and the curly apostrophe in contractions and possessives, for example don't and company's. Do not mix curly and straight in the same passage. Use straight throughout.
 Bold sparingly. 1 or 2 moments per section max.
 Use headers only when they help.
 Use bullets only when scanning matters.
 Use code blocks for exact prompts, commands, examples, or copy.
 Use sentence case in headers.
 Do not add a summary paragraph unless the piece is long enough to need one.
+
+### 3A. No emoji as formatting
+
+Do not use emoji to decorate prose, headings, or bullet points. This includes status emoji and pictograms placed in front of a heading or list item.
+Do not use:
+
+- a check mark in front of a heading or item
+- a rocket, brain, or brick glyph as decoration
+- an emoji used as a bullet marker
+  No emoji in prose or headings.
+
+### 3B. No unnecessary tables
+
+Use a table only when readers need to compare rows or columns. If prose carries the same facts with no loss of scanning value, write prose. Two or three facts belong in a sentence, not a table.
+
+### 3C. No inline-header vertical lists
+
+Do not use the canned list shape where each item is a marker, then a bold inline header, then a colon, then descriptive text, when the content reads fine as prose. Use a list only when scanning genuinely helps.
+Bad:
+
+- **Notability:** the article now focuses on facts.
+- **Original research:** removed unsourced claims.
+- **Tone:** made it neutral.
+  Better: the same points written as two or three plain sentences.
 
 ---
 
@@ -554,6 +579,18 @@ Avoid:
 - setting the stage for
 - marking a significant evolution
 - broader implications
+
+Do not prove that something matters by piling up claims of media coverage or naming the kinds of outlets that covered it (overattribution).
+Avoid:
+
+- independent coverage
+- profiled in
+- written by a leading expert
+- active social media presence
+- featured in X and other prominent media outlets
+- naming source types (trade publications, regional media, national outlets) to assert importance
+  Bad: "Her insights have been featured in Wired, Refinery29, and other prominent media outlets."
+  Better: state the relevant fact once and let it stand, with a single citation if one is needed.
   State the fact. Let the reader judge weight.
 
 ### 8B. Rule of three
@@ -630,6 +667,33 @@ Bad:
 Better:
 "The app has a dashboard."
 
+### 8J. Vague attribution and weasel words
+
+Do not attribute a claim or opinion to a vague, uncounted authority instead of naming a real source. Do not use such as to introduce a list that is actually exhaustive rather than a sample.
+Do not use:
+
+- Industry reports
+- Observers have cited
+- Experts argue
+- Some critics argue
+- several sources or several publications when only a few or none are cited
+- such as before an exhaustive list
+  Bad: "Experts argue the tool improves onboarding."
+  Better: name the source and what it says, or state the fact directly without the fake authority.
+
+### 8K. Phrasal templates and placeholder text
+
+Never ship output that still contains fill-in-the-blank placeholders you were meant to replace.
+Do not leave:
+
+- [insert X]
+- [Your Name]
+- [link to the revised article]
+- [Entertainer's Name]
+- [Describe the specific section ...]
+- placeholder dates like 2025-xx-xx
+  Fill the blank or delete it. No bracketed blanks, template prompts, or xx dates in finished output.
+
 ---
 
 ## 9. Anti-overfitting guide
@@ -665,5 +729,12 @@ Run this pass silently:
 10. Delete analogies unless they pass the permission test.
 11. Remove metaphor verbs used for abstract work.
 12. Cut the ending if it only repeats the point.
-13. Ask: does this sound useful, or overworked?
+13. Convert curly quotes and apostrophes to straight " and '.
+14. Replace vague attribution and weasel words with a named source or a direct fact.
+15. Remove leftover placeholders, bracketed blanks, and xx dates.
+16. Remove emoji used as formatting in prose or headings.
+17. Replace unnecessary tables with prose.
+18. Rewrite inline-header vertical lists as prose where it reads fine.
+19. Remove canned notability and overattribution.
+20. Ask: does this sound useful, or overworked?
     Send the cleaner version.
