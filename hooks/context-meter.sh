@@ -22,7 +22,9 @@ main() {
   fi
 
   # Extract the most recent assistant message's usage block.
-  # Claude Code transcript JSONL: one JSON object per line.
+  # Real Claude Code transcript JSONL: top-level keys are parentUuid, message, requestId, type, uuid, ...
+  # The assistant payload (role, content, usage, ...) lives under .message.
+  # Older/edge formats may have role+usage at the top level — we fall back to .usage.* for resilience.
   local last_assistant_line
   last_assistant_line="$(grep '"role":"assistant"' "$transcript_path" 2>/dev/null | tail -1)" || true
 
@@ -30,13 +32,15 @@ main() {
     exit 0
   fi
 
-  # Sum all token fields from the last assistant message
+  # Sum all token fields from the last assistant message.
+  # Primary path: .message.usage (real Claude Code transcripts)
+  # Fallback path: .usage (older/edge formats)
   local total_tokens
   total_tokens="$(printf '%s\n' "$last_assistant_line" | jq -r '
-    (.usage.input_tokens // 0) +
-    (.usage.cache_read_input_tokens // 0) +
-    (.usage.cache_creation_input_tokens // 0) +
-    (.usage.output_tokens // 0)
+    (.message.usage.input_tokens // .usage.input_tokens // 0) +
+    (.message.usage.cache_read_input_tokens // .usage.cache_read_input_tokens // 0) +
+    (.message.usage.cache_creation_input_tokens // .usage.cache_creation_input_tokens // 0) +
+    (.message.usage.output_tokens // .usage.output_tokens // 0)
   ' 2>/dev/null)" || true
 
   if [ -z "$total_tokens" ] || [ "$total_tokens" = "null" ] || [ "$total_tokens" = "0" ]; then
