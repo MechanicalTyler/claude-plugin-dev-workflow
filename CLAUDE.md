@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**dev-workflow** is a Claude plugin (v2.14.0) that provides action-based development workflow orchestration with pluggable PM and notes adapters. It enables specialized workflows (Start Development, Story to Spec, Review PR, Test PR, Start Debugging, Create Story, Full Cycle) through structured, quality-gated stages.
+**dev-workflow** is a Claude plugin (v2.15.0) that provides action-based development workflow orchestration with pluggable PM and notes adapters. It enables specialized workflows (Start Development, Story to Spec, Review PR, Test PR, Start Debugging, Create Story, Full Cycle) through structured, quality-gated stages.
 
 **Dependency:** Requires the `superpowers` plugin to be installed — it provides core methodology skills (TDD, debugging, brainstorming, subagent orchestration, verification).
 
@@ -56,18 +56,29 @@ Skills invoke superpowers throughout their workflows:
 
 ```
 skills/
-  start-development/  # Full development workflow (TDD, subagents, PR)
-  write-spec/      # Story → Claude Instructions spec transformation
-  review-pr/          # Multi-perspective PR review with mode detection
-  test-pr/            # Evidence-based functional testing
-  start-debugging/    # Debug/dev/rework unified skill
-  create-story/       # Interactive interview → PM story creation
-  full-cycle/         # End-to-end lifecycle orchestrator (sequences all stages)
+  start-development/   # Full development workflow (TDD, subagents, PR)
+  write-spec/          # Story → Claude Instructions spec transformation
+  review-pr/           # Multi-perspective PR review with mode detection
+  test-pr/             # Evidence-based functional testing
+  start-debugging/     # Debug/dev/rework unified skill
+  create-story/        # Interactive interview → PM story creation
+  full-cycle/          # End-to-end lifecycle orchestrator (sequences all stages)
   address-pr-comments/ # Address review feedback in current session
-  pm-adapter/         # PM tool adapters + interface spec
-  notes-adapter/      # Notes storage adapters + interface spec
-.claude-plugin/       # Plugin manifest (plugin.json)
+  pm-adapter/          # PM tool adapters + interface spec
+  notes-adapter/       # Notes storage adapters + interface spec
+  shared/              # Shared protocol docs (standards, adapter-loading, context-compaction, ...)
+hooks/
+  context-meter.sh     # PostToolUse: token usage meter — emits at 60%/75% of 200k baseline
+  compact-injector.sh  # Stop: consumes .compact-request sentinel and injects /compact via tmux
+  hooks.json           # Hook registration (CLAUDE_PLUGIN_ROOT-relative paths)
+.claude-plugin/        # Plugin manifest (plugin.json)
 ```
+
+Runtime state (not committed): `~/.claude/dev-workflow/state/`
+- `{story-id}.json` — per-story checkpoint (stage, PR numbers, loop counts, next action)
+- `.compact-request` — sentinel written by full-cycle at a high-context handoff (inside tmux only)
+- `.compact-request.failed` — written by compact-injector on injection failure
+- `context-meter-tier.txt` — last announced meter tier (prevents repeat emissions)
 
 ## Working on This Codebase
 
