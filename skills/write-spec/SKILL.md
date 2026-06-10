@@ -236,57 +236,56 @@ Before writing the final spec, use the writing-plans methodology to structure th
 - File references (e.g., `path/to/file.rs`) are acceptable for pointing developers to the right location. Code excerpts from those files are not.
 - A product manager should be able to read this spec and understand every section.
 
-The spec is a human-readable artifact saved to a local file, so it must be a **standalone HTML document** per the Output Format rules in `skills/shared/standards.md` — not markdown. Compose a comprehensive "Claude Instructions" spec using this structure:
+The spec is a human-readable artifact saved to a local file, so it must be a **standalone HTML document** per the Output Format rules in `skills/shared/standards.md` — not markdown.
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Claude Instructions: [Story Title]</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 56rem; margin: 2rem auto; padding: 0 1.5rem; line-height: 1.6; color: #1a1a1a; }
-    h1 { border-bottom: 2px solid #ddd; padding-bottom: .3rem; }
-    h2 { margin-top: 2rem; }
-    code { background: #f4f4f4; padding: .1rem .3rem; border-radius: 3px; font-family: ui-monospace, monospace; }
-    ul { padding-left: 1.4rem; }
-    .check { list-style: none; padding-left: 0; }
-    .check li::before { content: "\2610  "; }
-  </style>
-</head>
-<body>
-  <h1>Claude Instructions: [Story Title]</h1>
+### Document shell: use the reference template
 
-  <h2>Story Summary</h2>
-  <p>[Brief description of what needs to be built]</p>
+Read `spec-template.html` (located in this skill's own directory, next to this SKILL.md) and use it as the document shell. Replace every `{{PLACEHOLDER}}` token and every block marked `SLOT:` with story-specific content; delete example callouts and badges that are not needed. The template already implements every design requirement below — fill content into it rather than authoring document structure from scratch.
 
-  <h2>Technical Context</h2>
-  <p>[Key files, patterns, and architectural context relevant to this feature]</p>
+**Fallback:** if the template file cannot be read for any reason, do NOT fail — still produce a standalone HTML spec that satisfies every design requirement listed below.
 
-  <h2>Implementation Steps</h2>
-  <ol>
-    <li>[Step with <code>file:line</code> references]</li>
-  </ol>
+### Design requirements (every generated spec must satisfy all of these)
 
-  <h2>Test Requirements</h2>
-  <p>[What tests need to be written, what patterns to follow]</p>
+1. **Header meta bar** — title plus compact pills for story ID, status (Draft/Approved), repo, story type, and date.
+2. **TL;DR card** — a visually distinct 2–3 sentence what/why/impact summary placed before any detail, followed by a key-facts strip.
+3. **Sticky table of contents with scroll tracking** — a navigation rail that stays visible while scrolling, highlights the section currently in view, and collapses gracefully on narrow windows. One TOC entry per `h2` section, in document order.
+4. **Collapsible sections** — supporting detail (alternatives considered, background, edge-case notes) goes in native `<details>` disclosure blocks, collapsed by default. Works without JavaScript and via keyboard.
+5. **Callout boxes** — note / tip / warning / danger boxes with a colored edge and label for constraints and risks, so they are unmissable while scanning.
+6. **Status badges** — small colored pills (Required/Optional, P0/P1) replacing adjective-laden prose in lists and tables.
+7. **Interactive validation checklist** — acceptance-criteria checkboxes the reviewer can tick, with a live progress count, persisted across reloads in the browser's local storage (keyed per spec so different specs never collide).
+8. **Anchor-linked headings** — every section heading individually linkable (hover reveals a link icon), with smooth scrolling and correct scroll offset.
+9. **Scannable text discipline** — bulleted lists, bold keywords, one idea per paragraph, descriptive subheadings; tables or card layouts for structured data (file lists, criteria) instead of paragraphs.
+10. **Readable typography** — system font stack (no webfonts), comfortable body size and line height, line length capped around 70 characters.
+11. **Light/dark color system** — semantic color tokens defined once and swapped automatically when the reader's system prefers dark; no pure-black backgrounds; form controls follow the active scheme.
+12. **Print stylesheet** — printing (or save-to-PDF) opens all collapsed sections, hides navigation chrome, and renders black-on-white.
 
-  <h2>Manual Testing</h2>
-  <h3>Happy Path</h3>
-  <ul class="check"><li>[Step to verify normal usage]</li></ul>
-  <h3>Error Scenarios</h3>
-  <ul class="check"><li>[Step to verify error handling]</li></ul>
-  <h3>UX Verification</h3>
-  <ul class="check"><li>[Step to verify user experience]</li></ul>
+All behavior must use only browser-native HTML/CSS/JS embedded in the single file, and JavaScript must be progressive enhancement only — with it disabled, all content stays readable and `<details>` still toggles.
 
-  <h2>Validation Checklist</h2>
-  <ul class="check">
-    <li>[Acceptance criterion 1]</li>
-    <li>[Acceptance criterion 2]</li>
-  </ul>
-</body>
-</html>
-```
+### Content-to-template mapping
+
+Place the required content sections into the template's structure as follows:
+
+| Content | Template location | Collapsible? |
+|---------|-------------------|--------------|
+| TL;DR summary | TL;DR card + key-facts strip | NEVER collapse |
+| Story Summary | `#story-summary` section | NEVER collapse |
+| Technical Context (key files, patterns) | `#technical-context` section, file table | NEVER collapse |
+| Constraints, risks, gotchas | Callout boxes inside the relevant section | NEVER collapse |
+| Alternatives considered, background, edge-case detail | `<details class="supporting">` blocks | Collapsed by default |
+| Implementation Steps | `#implementation-steps` ordered list | NEVER collapse |
+| Test Requirements | `#test-requirements` section | NEVER collapse |
+| Manual Testing (Happy Path / Error Scenarios / UX Verification) | `#manual-testing` section + h3 subsections | NEVER collapse |
+| Validation Checklist (acceptance criteria) | `#validation-checklist` interactive checklist | NEVER collapse |
+
+Critical content — requirements, risks, implementation steps, acceptance criteria, summaries — must never be hidden inside collapsed sections. Only supporting detail may be collapsed.
+
+### Anti-patterns (explicitly forbidden)
+
+- Unbroken multi-paragraph prose walls
+- Full-width text lines on wide monitors
+- Hiding risks, requirements, steps, or acceptance criteria inside collapsed sections
+- Heading nesting deeper than three levels (`h1` > `h2` > `h3` maximum)
+- Any external dependency: CDN scripts, webfonts, frameworks, analytics, or network requests of any kind — the file must remain fully self-contained and offline-capable
 
 Then use the notes adapter to write this spec:
 - Service name is the basename of the repo currently being specced (`git -C {repo_root} rev-parse --show-toplevel | xargs basename`)
