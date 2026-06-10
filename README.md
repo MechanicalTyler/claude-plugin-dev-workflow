@@ -45,11 +45,42 @@ Create `~/.claude/dev-workflow/config.json`:
       "story_id_prefix": "sc-"
     }
   },
-  "deploy_command": "Run the dev CI workflow in GitHub Actions"
+  "deploy_command": "Run the dev CI workflow in GitHub Actions",
+  "models": {
+    "implementation": "sonnet",
+    "reasoning": "opus",
+    "review": "opus",
+    "stages": {
+      "start-development": "sonnet",
+      "review-pr": "opus",
+      "test-pr": "opus",
+      "address-pr-comments": "sonnet",
+      "entry-detection": "sonnet",
+      "decision-read": "sonnet"
+    }
+  }
 }
 ```
 
 The `local` notes adapter's `specs_path` is optional. When omitted, specs default to `docs/specs/` relative to the repo root. Set it to a relative path (resolved against the repo root) or an absolute path to store specs elsewhere.
+
+The `models` section is optional. When absent, all dispatches use the built-in defaults shown above. When present, any key you set overrides the default for that task type or stage; unspecified keys fall through to defaults automatically.
+
+**Model key reference:**
+
+| Key | Default | Governs |
+|-----|---------|---------|
+| `models.implementation` | `sonnet` | All coding/implementation subagents (implementers, TDD cycles) |
+| `models.reasoning` | `opus` | All reasoning/planning subagents (brainstorming, architecture) |
+| `models.review` | `opus` | All review/testing subagents (review board, adversarial review, test agents) |
+| `models.stages.start-development` | `sonnet` | full-cycle's start-development stage subagent |
+| `models.stages.review-pr` | `opus` | full-cycle's review-pr stage subagent |
+| `models.stages.test-pr` | `opus` | full-cycle's test-pr stage subagent |
+| `models.stages.address-pr-comments` | `sonnet` | full-cycle's fix subagent in the review and test loops |
+| `models.stages.entry-detection` | `sonnet` | full-cycle's resume/entry-detection subagent |
+| `models.stages.decision-read` | `sonnet` | full-cycle's authoritative review/test decision-read subagent |
+
+**Resolution order** for any dispatch: `models.stages.<stage-key>` → `models.<task-type>` → built-in default. Stage-level keys take priority over task-type keys. Users who never add the `models` section see no change in behavior.
 
 ## Adapters
 
@@ -79,7 +110,7 @@ Your adapter must implement the same interface as built-in adapters — see `ski
 
 ## Context Compaction (full-cycle only)
 
-Long `full-cycle` runs accumulate context. Version 2.15.0 adds three mechanisms
+Long `full-cycle` runs accumulate context. Version 2.15.0 introduced three mechanisms
 to keep compaction lossless and, where possible, automatic:
 
 **Checkpoints** — full-cycle writes `~/.claude/dev-workflow/state/{story-id}.json`

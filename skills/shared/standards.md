@@ -43,13 +43,23 @@ When a skill shows a mockup to the user, render it as HTML.
 
 ## Subagent Model Selection
 
-When dispatching subagents via the Agent tool, use the `model` parameter to match task type:
+When dispatching subagents via the Agent tool, resolve the model from the user's config and pass it via the `model` parameter on every `Agent()` call.
 
-| Task type | Model | Examples |
-|-----------|-------|----------|
-| Coding / implementation | `sonnet` | Implementer subagents, TDD cycles, file edits |
-| Reasoning / exploration / planning | `opus` | Brainstorming, root cause analysis, architecture decisions |
-| Review / testing | `opus` | Code quality review, spec compliance review, PR review subagents, test scenario design |
+**Resolution order** for any dispatch:
+
+1. Check `models.stages.<stage-key>` in `~/.claude/dev-workflow/config.json` (for stage-specific overrides used by full-cycle).
+2. Check `models.<task-type>` in the same config (for task-type-level overrides).
+3. Fall back to the built-in default from the table below.
+
+A missing `models` section, a missing key, or an empty value falls through to the next level — never an error.
+
+**Built-in defaults** (used when config keys are absent):
+
+| Task type | Default model | Examples |
+|-----------|---------------|----------|
+| Coding / implementation (`implementation`) | `sonnet` | Implementer subagents, TDD cycles, file edits |
+| Reasoning / exploration / planning (`reasoning`) | `opus` | Brainstorming, root cause analysis, architecture decisions |
+| Review / testing (`review`) | `opus` | Code quality review, spec compliance review, PR review subagents, test scenario design |
 
 These assignments override the generic guidance in `superpowers:subagent-driven-development`. Pass the `model` parameter on every `Agent()` call that dispatches a subagent.
 
