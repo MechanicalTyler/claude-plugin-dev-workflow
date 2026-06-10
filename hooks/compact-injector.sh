@@ -13,7 +13,7 @@ STALE_SECONDS=600   # 10 minutes
 # detached background process and performs the actual tmux injection.
 if [ "${1:-}" = "--inject" ]; then
   PANE="$2"
-  RESUME_CMD="$3"
+  RESUME_CMD="${COMPACT_RESUME_CMD:-}"
   MAX_RETRIES=3
   attempt=0
 
@@ -21,6 +21,11 @@ if [ "${1:-}" = "--inject" ]; then
     mkdir -p "$STATE_DIR"
     printf 'compact-injector failed: %s\n' "$1" > "$FAILED_NOTE"
   }
+
+  if [ -z "$RESUME_CMD" ]; then
+    write_failed "COMPACT_RESUME_CMD not set"
+    exit 1
+  fi
 
   sleep 2
 
@@ -107,8 +112,9 @@ main() {
     exit 0
   fi
 
-  # Spawn detached injector (this script itself, called with --inject)
-  bash "$0" --inject "$pane" "$resume_cmd" &
+  # Spawn detached injector (this script itself, called with --inject).
+  # Pass resume_cmd via environment to avoid word-splitting on spaces.
+  COMPACT_RESUME_CMD="$resume_cmd" bash "$0" --inject "$pane" &
   disown
   exit 0
 }
