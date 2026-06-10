@@ -33,8 +33,9 @@ Read the CLAUDE.md file in this repository before starting.
 
 1. Read `~/.claude/dev-workflow/config.json`
 2. Note `pm_adapter` and `notes_adapter` values
-3. Load PM adapter per procedure in `skills/shared/adapter-loading.md`
-4. Load notes adapter per procedure in `skills/shared/adapter-loading.md`
+3. Note the `models` section (if present) — used for stage-dispatch model resolution throughout this skill (see "Subagent model selection" below and "Subagent Model Selection" in `standards.md`)
+4. Load PM adapter per procedure in `skills/shared/adapter-loading.md`
+5. Load notes adapter per procedure in `skills/shared/adapter-loading.md`
 
 Parse `$ARGUMENTS`:
 
@@ -69,10 +70,18 @@ Pass the explicit PR number in the prompt as well, so the subagent never has to 
 
 **Subagent model selection (per `standards.md` → "Subagent Model Selection"):**
 
-- start-development, address-pr-comments → `sonnet` (implementation work)
-- review-pr, test-pr → `opus` (review / testing work)
+Resolve each dispatch's model using the resolution order: `models.stages.<stage-key>` → `models.<task-type>` → built-in default. Built-in defaults:
 
-Pass the `model` parameter on every dispatch.
+| Stage / dispatch | `stages` key | Task type | Default |
+|-----------------|--------------|-----------|---------|
+| entry-detection subagent | `entry-detection` | `implementation` | `sonnet` |
+| start-development | `start-development` | `implementation` | `sonnet` |
+| review-pr | `review-pr` | `review` | `opus` |
+| address-pr-comments (fix loop) | `address-pr-comments` | `implementation` | `sonnet` |
+| test-pr | `test-pr` | `review` | `opus` |
+| decision-read subagent | `decision-read` | `implementation` | `sonnet` |
+
+Pass the resolved model as the `model` parameter on every dispatch.
 
 **Output mode (per `standards.md` → "Output Mode Detection").** Determine the mode at startup. The orchestrator is **interactive by nature** when it must run create-story or write-spec, because those stages require user input (the spec-approval gate especially). If the skill is running non-interactively (no way to ask the user) AND the detected entry stage is create-story or write-spec, STOP and surface that the pipeline needs an interactive session to define/approve the spec. When resuming at start-development or later, no further interaction is required and the run may complete autonomously, emitting the flat key/value summary at Termination.
 
@@ -105,7 +114,7 @@ How to gather each signal:
 ### Entry detection subagent
 
 Gather the signals (story state, linked PRs, review decision, test labels) via a
-dispatched subagent (model: `sonnet`) whose prompt is:
+dispatched subagent (model: resolved from `models.stages.entry-detection` → `models.implementation` → default `sonnet`) whose prompt is:
 
 > Fetch story {story-id} via the Shortcut MCP tool. Find any linked PRs via the
 > PM adapter's "Finding PRs linked to a story" instructions (fall back to
@@ -153,7 +162,7 @@ write-spec already writes one spec per repo named in the story (satisfying the "
 
 ## Stage — start-development (subagent)
 
-Dispatch a subagent (model: `sonnet`) whose prompt instructs it to:
+Dispatch a subagent (model: resolved from `models.stages.start-development` → `models.implementation` → default `sonnet`) whose prompt instructs it to:
 
 > Invoke Skill: `dev-workflow:start-development` with the story ID, running autonomously.
 
@@ -171,7 +180,7 @@ Then proceed to review-pr for each resulting PR.
 
 For each PR produced by start-development:
 
-Dispatch a subagent (model: `opus`) whose prompt instructs it to:
+Dispatch a subagent (model: resolved from `models.stages.review-pr` → `models.review` → default `opus`) whose prompt instructs it to:
 
 > Invoke Skill: `dev-workflow:review-pr` with the PR number, running autonomously.
 
@@ -183,11 +192,11 @@ After it returns, read the PR's latest **review** decision authoritatively from 
 
 While the latest review decision for the PR is **changes requested**:
 
-1. Dispatch a subagent (model: `sonnet`) whose prompt instructs it to **first** run `gh pr checkout {PR_NUMBER}` to land on the PR's branch, then:
+1. Dispatch a subagent (model: resolved from `models.stages.address-pr-comments` → `models.implementation` → default `sonnet`) whose prompt instructs it to **first** run `gh pr checkout {PR_NUMBER}` to land on the PR's branch, then:
    > Invoke Skill: `dev-workflow:address-pr-comments` for PR `{PR_NUMBER}`.
 
    It implements the requested changes on the **same branch and PR** and replies to the review.
-2. Re-dispatch the review-pr subagent (model: `opus`) for the same PR.
+2. Re-dispatch the review-pr subagent (model: resolved from `models.stages.review-pr` → `models.review` → default `opus`) for the same PR.
 3. Re-read the authoritative review decision (the newest review submitted since this re-dispatch).
 
 Repeat until the review decision is **approved**, subject to the Loop Safety Guard below. Then proceed to test-pr.
@@ -198,7 +207,7 @@ Repeat until the review decision is **approved**, subject to the Loop Safety Gua
 
 Once the PR is review-approved:
 
-Dispatch a subagent (model: `opus`) whose prompt instructs it to:
+Dispatch a subagent (model: resolved from `models.stages.test-pr` → `models.review` → default `opus`) whose prompt instructs it to:
 
 > Invoke Skill: `dev-workflow:test-pr` with the PR number, running autonomously.
 
@@ -212,8 +221,8 @@ After it returns, read the PR's latest **test** decision authoritatively from Gi
 
 While testing **requests changes**:
 
-1. Dispatch the address-pr-comments subagent (model: `sonnet`) for the same PR — its prompt must first run `gh pr checkout {PR_NUMBER}`, then invoke `dev-workflow:address-pr-comments` for PR `{PR_NUMBER}`.
-2. Re-dispatch the test-pr subagent (model: `opus`) for the same PR.
+1. Dispatch the address-pr-comments subagent (model: resolved from `models.stages.address-pr-comments` → `models.implementation` → default `sonnet`) for the same PR — its prompt must first run `gh pr checkout {PR_NUMBER}`, then invoke `dev-workflow:address-pr-comments` for PR `{PR_NUMBER}`.
+2. Re-dispatch the test-pr subagent (model: resolved from `models.stages.test-pr` → `models.review` → default `opus`) for the same PR.
 3. Re-read the authoritative test decision (the newest review submitted since this re-dispatch).
 
 Repeat until testing **passes**, subject to the Loop Safety Guard below.
@@ -234,7 +243,7 @@ Take the **most recent** review (highest `submitted_at`) and read its `state`:
 - `CHANGES_REQUESTED` → treat as **changes requested**.
 - `COMMENTED` / `PENDING` → not a decision; the stage did not conclude — surface this to the user rather than looping.
 
-**Dispatch this read as a sonnet subagent** returning one line:
+**Dispatch this read as a subagent** (model: resolved from `models.stages.decision-read` → `models.implementation` → default `sonnet`) returning one line:
 
 > Run: `gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/reviews`
 > Return **one line**: `decision=<APPROVED|CHANGES_REQUESTED|COMMENTED> submitted_at=<ISO>`
