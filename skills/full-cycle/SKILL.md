@@ -23,6 +23,8 @@ Read `skills/shared/adapter-loading.md` — adapter loading procedures reference
 
 Read `skills/shared/repo-discovery.md` — repo discovery procedure used by the stages this skill sequences.
 
+Read `skills/shared/context-compaction.md` — checkpoint protocol, sentinel format, and non-tmux fallback wording used throughout this skill.
+
 Read the CLAUDE.md file in this repository before starting.
 
 ---
@@ -99,6 +101,21 @@ How to gather each signal:
 2. **Linked PR:** use the PM adapter's "Finding PRs linked to a story" instructions. If none is linked there, fall back to `gh pr list --state all --search "{story_id}"`.
 3. **Review decision:** `gh pr view {PR_NUMBER} --json reviewDecision` for the aggregate, or the latest review's `state` (see Reading the Authoritative Review Decision below).
 4. **Test outcome:** test-pr applies a `tested-in-dev` (passed) or `tests-failing` (failed) label on every run (see "test-pr label requirement" below). These labels — not review recency or `reviewDecision` — are the durable signal that distinguishes the test stage from the review stage. If a review-approved PR carries **neither** label, treat it as **not yet tested** (row 7) and state that assumption to the user.
+
+### Entry detection subagent
+
+Gather the signals (story state, linked PRs, review decision, test labels) via a
+dispatched subagent (model: `sonnet`) whose prompt is:
+
+> Fetch story {story-id} via the Shortcut MCP tool. Find any linked PRs via the
+> PM adapter's "Finding PRs linked to a story" instructions (fall back to
+> `gh pr list --state all --search "{story_id}"`). If a PR exists, read its
+> `reviewDecision` and labels (`tested-in-dev`, `tests-failing`). Return **one line**:
+>
+> `entry_stage=<stage> pr=<number or none> review=<decision or none> labels=<csv or none>`
+
+Read that one line. Use the Resume / Entry Detection table above to map it to an entry
+stage. Raw PM/GitHub output never enters the main orchestrator context.
 
 When the entry stage is mid-pipeline, run that stage, then continue forward through the remaining stages in normal order. State the detected entry stage to the user before proceeding.
 
@@ -217,6 +234,13 @@ Take the **most recent** review (highest `submitted_at`) and read its `state`:
 - `CHANGES_REQUESTED` → treat as **changes requested**.
 - `COMMENTED` / `PENDING` → not a decision; the stage did not conclude — surface this to the user rather than looping.
 
+**Dispatch this read as a sonnet subagent** returning one line:
+
+> Run: `gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/reviews`
+> Return **one line**: `decision=<APPROVED|CHANGES_REQUESTED|COMMENTED> submitted_at=<ISO>`
+
+Read that one line. Never let the raw `gh api` JSON enter the main orchestrator context.
+
 `gh pr view {PR_NUMBER} --json reviewDecision` is an acceptable convenience equivalent for the PR-level aggregate decision.
 
 Because review-pr and test-pr both submit reviews on the same PR (and as the same bot author), recency alone cannot tell their decisions apart on a PR that has both. Disambiguate by context, not author:
@@ -255,6 +279,43 @@ The orchestrator only sequences stages; it must **never** fire a PM state transi
 - test-pr owns its **review submission and `tested-in-dev`/`tests-failing` labels**
 
 The orchestrator never duplicates these transitions or labels. Its job between stages is to read state, not to write it.
+
+---
+
+## Context Hygiene
+
+Read `skills/shared/context-compaction.md` at startup — it defines the checkpoint
+schema, sentinel format, stale-sentinel lifecycle, and the exact non-tmux fallback
+message wording. This section describes when full-cycle calls those procedures.
+
+### Checkpoint writes
+
+Write the checkpoint (`~/.claude/dev-workflow/state/{story-id}.json`) at every stage
+boundary and loop iteration, using the stage and key facts at that moment:
+
+| Moment | `stage` value | Notes |
+|--------|---------------|-------|
+| After create-story returns | `"write-spec"` | `story_id` now known |
+| After spec approval gate | `"start-development"` | — |
+| After start-development subagent returns | `"review-pr"` | record `pr_numbers` |
+| After each address-pr-comments + review-pr iteration | `"review-loop"` | increment `review_loop_count` |
+| After each address-pr-comments + test-pr iteration | `"test-loop"` | increment `test_loop_count` |
+| After test-pr passes | `"done"` | final checkpoint |
+
+If a checkpoint write fails, surface the error to the user and continue — do not abort.
+
+### High-context handoff
+
+When the context meter (PostToolUse hook) has reported ≥75% usage and full-cycle
+reaches a stage boundary, follow the high-context handoff procedure defined in
+`skills/shared/context-compaction.md`:
+
+- **Inside tmux (`$TMUX` is set):** write checkpoint, write sentinel, announce, end turn.
+- **Outside tmux:** write checkpoint, emit the exact manual-fallback message with the
+  actual story ID substituted, end turn. Do not write a sentinel.
+
+The context meter's `additionalContext` message is the trigger signal — act on it at
+the next stage boundary after receiving it, not mid-stage.
 
 ---
 

@@ -77,6 +77,26 @@ User adapters in `~/.claude/skills/` take precedence over plugin adapters with t
 
 Your adapter must implement the same interface as built-in adapters — see `skills/pm-adapter/interface.md` or `skills/notes-adapter/interface.md` for the required capabilities.
 
+## Context Compaction (full-cycle only)
+
+Long `full-cycle` runs accumulate context. Version 2.15.0 adds three mechanisms
+to keep compaction lossless and, where possible, automatic:
+
+**Checkpoints** — full-cycle writes `~/.claude/dev-workflow/state/{story-id}.json`
+at every stage boundary and loop iteration. On re-invoke, the pipeline re-enters at
+the correct stage regardless of when compaction occurred.
+
+**Context meter** — a PostToolUse hook measures token usage against a fixed 200,000-token
+baseline. At 60% it advises writing a checkpoint; at 75% it advises compacting at the
+next handoff. Set `DEV_WORKFLOW_COMPACT_BASELINE` (tokens) to override the baseline.
+
+**Compact injector** — a Stop hook fires at turn end. If a `.compact-request` sentinel
+exists and the session is inside tmux, the hook spawns a detached process that injects
+`/compact` into the pane and sends the resume command after compaction completes. Outside
+tmux, full-cycle instead tells you the exact two commands to run manually.
+
+Both hooks are registered automatically when the plugin is loaded.
+
 ## Installation
 
 ```json

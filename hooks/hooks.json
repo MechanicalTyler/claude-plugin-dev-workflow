@@ -1,0 +1,13 @@
+{
+  "hooks": [
+    {
+      "type": "PostToolUse",
+      "matcher": "*",
+      "script": "${CLAUDE_PLUGIN_ROOT}/hooks/context-meter.sh"
+    },
+    {
+      "type": "Stop",
+      "script": "${CLAUDE_PLUGIN_ROOT}/hooks/compact-injector.sh"
+    }
+  ]
+}
