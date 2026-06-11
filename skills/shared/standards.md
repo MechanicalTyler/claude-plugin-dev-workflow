@@ -139,6 +139,19 @@ Questions are a last resort — only ask when **all** of these are true:
 
 ---
 
+## Story Creation Gate
+
+**A PM story, ticket, issue, or subtask may ONLY be created when the user explicitly invoked `create-story` or `full-cycle`.**
+
+- **Explicit invocation only** — Story creation is permitted only when the user explicitly invoked the `create-story` skill (slash command or a direct, unambiguous request to create a story/ticket) or explicitly invoked `full-cycle` (whose pipeline legitimately begins at create-story)
+- **Permission ask everywhere else** — In any other context — including when `create-story` was auto-triggered by a conversational phrase, or when any other skill believes a story is needed — ask the user for explicit permission FIRST, before any interviewing, drafting, or adapter calls. Only an explicit yes proceeds
+- **Autonomous contexts never create** — An agent with no ability to ask (autonomous mode, dispatched subagent) must NEVER create a story under any circumstances. Stop and report that a story would be needed, naming what it wanted to create
+- **Applies to every creation path** — The gate covers stories, tickets, issues, and subtasks, created via ANY mechanism: adapter instructions, direct MCP tools, CLI commands (`gh issue create`, `jira issue create`), or raw API calls
+
+Reading, updating, commenting on, and labeling existing stories are unaffected — the gate restricts creation only.
+
+---
+
 ## Testing Standards
 
 **Write only real, functional, relevant tests.** A test must exercise actual behavior and be capable of failing when that behavior breaks.

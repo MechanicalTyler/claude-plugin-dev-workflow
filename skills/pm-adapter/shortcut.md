@@ -63,6 +63,8 @@ Format: `sc-XXXXX`
 
 ## Create Story
 
+**⚠️ Gated operation:** subject to the Story Creation Gate in `skills/shared/standards.md` — never execute unless the gate is satisfied.
+
 MCP tool: `mcp__shortcut__stories-create` with fields:
 - `name`: story title
 - `description`: full markdown body (see body format below)

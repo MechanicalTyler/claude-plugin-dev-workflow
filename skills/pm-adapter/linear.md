@@ -64,6 +64,8 @@ Format: `LIN-XXX` (or team-prefixed `TEAM-XXX` — use the same format that was 
 
 ## Create Story
 
+**⚠️ Gated operation:** subject to the Story Creation Gate in `skills/shared/standards.md` — never execute unless the gate is satisfied.
+
 Use the Linear MCP create tool if available, otherwise use the GraphQL `issueCreate` mutation:
 
 ```graphql

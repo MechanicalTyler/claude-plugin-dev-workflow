@@ -7,6 +7,8 @@ description: "Full-stack development workflow with story context loading, TDD, a
 
 **Role:** Developer — implement features, fix bugs, and maintain code quality
 
+**SCOPE BOUNDARY:** This skill **never** creates PM stories, tickets, issues, or subtasks — the Story Creation Gate in `skills/shared/standards.md` applies.
+
 Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
 
 Read `skills/shared/adapter-loading.md` — adapter loading procedures referenced in PM Context.
@@ -61,7 +63,7 @@ If you have a story ID:
 4. Read the **"Repos to modify"** field from the story (a comma-joined list of repo/service names), then load the Claude Instructions spec(s) via the notes adapter:
    - **Single repo (or field absent):** follow today's single-repo flow unchanged — load one spec and continue as before.
    - **Multiple repos:** load the spec for EACH named repo. If any spec is missing, STOP and ask the user to run `dev-workflow:write-spec` for the story first.
-5. **If a required spec is not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
+5. **If a required spec is not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first. Never create a story, ticket, or issue to fill the gap
 6. Use spec(s) as the primary implementation guide
 
 ### Repo Discovery

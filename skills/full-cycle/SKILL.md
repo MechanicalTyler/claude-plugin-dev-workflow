@@ -138,6 +138,8 @@ This skill depends on test-pr labeling its outcome. test-pr is updated in this c
 
 Run only when there is no story yet.
 
+This stage satisfies the Story Creation Gate in `skills/shared/standards.md` only because the user explicitly invoked full-cycle. If full-cycle itself was auto-triggered, create-story's invocation-provenance pre-gate must still fire its permission ask.
+
 > Invoke Skill: `dev-workflow:create-story`
 >
 > Pass the feature description from `$ARGUMENTS` if one was provided.

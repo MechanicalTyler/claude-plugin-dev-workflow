@@ -7,6 +7,8 @@ description: "Three-mode unified skill for debugging bugs, standalone story impl
 
 **Role:** Unified skill for debugging, development, and rework — mode detected from arguments
 
+**SCOPE BOUNDARY:** This skill **never** creates PM stories, tickets, issues, or subtasks — the Story Creation Gate in `skills/shared/standards.md` applies.
+
 ## Arguments: $ARGUMENTS
 
 Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
@@ -110,7 +112,7 @@ The adversarial agent verifies the fix actually addresses the identified root ca
 1. Read `~/.claude/dev-workflow/config.json` for `pm_adapter` and `notes_adapter`
 2. Load PM adapter per procedure in `skills/shared/adapter-loading.md` → fetch story by ID
 3. Load notes adapter per procedure in `skills/shared/adapter-loading.md` → read Claude Instructions spec
-4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first
+4. **If spec not found:** STOP and ask user to invoke the Writer skill (`dev-workflow:write-spec`) with this story ID first. Never create a story, ticket, or issue to fill the gap
 
 ### Step 1.5: Write Implementation Plan
 

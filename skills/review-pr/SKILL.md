@@ -7,6 +7,8 @@ description: "Comprehensive multi-perspective PR review (Product Manager, Develo
 
 **Role:** Review PR — comprehensive PR review comparing implementation against story requirements
 
+**SCOPE BOUNDARY:** This skill **never** creates PM stories, tickets, issues, or subtasks — the Story Creation Gate in `skills/shared/standards.md` applies.
+
 ## Arguments: $ARGUMENTS
 
 Either a PR number (e.g., `42`) or a PM ticket ID (e.g., `sc-123`) may be passed as the argument.
@@ -97,7 +99,7 @@ Also check PR title if not found in body.
 
 **If story ID not found:**
 - Post review comment requesting story ID be added
-- **STOP with REQUEST_CHANGES** — do not proceed without story linkage
+- **STOP with REQUEST_CHANGES** — do not proceed without story linkage. Never create a story, ticket, or issue to fill the gap
 
 **Once ID found:**
 
