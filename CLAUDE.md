@@ -58,6 +58,7 @@ Skills invoke superpowers throughout their workflows:
 skills/
   start-development/   # Full development workflow (TDD, subagents, PR)
   write-spec/          # Story → Claude Instructions spec transformation
+    spec-template.html # Standalone HTML document shell for generated specs
   review-pr/           # Multi-perspective PR review with mode detection
   test-pr/             # Evidence-based functional testing
   start-debugging/     # Debug/dev/rework unified skill
@@ -82,7 +83,7 @@ Runtime state (not committed): `~/.claude/dev-workflow/state/`
 
 ## Working on This Codebase
 
-All content is Markdown skill definitions — there is no compiled code, no tests to run, and no build step. Changes are made by editing `.md` files in `skills/` and `commands/`.
+Content is mostly Markdown skill definitions, plus a small number of static assets (e.g., `skills/write-spec/spec-template.html`) — there is no compiled code, no tests to run, and no build step. Changes are made by editing `.md` files (and the occasional asset file) in `skills/` and `commands/`.
 
 When modifying a skill:
 - Update the version in `.claude-plugin/plugin.json` if changing behavior

@@ -195,6 +195,9 @@
       :root { --bg: #fff; --surface: #fff; --fg: #000; --muted: #333; --border: #999; --accent: #000; --accent-soft: #fff; }
       body { background: #fff; color: #000; }
       .toc, .hl { display: none; }
+      /* TOC is hidden, so collapse the two-column grid — otherwise wide page
+         boxes (landscape/PDF >960px) squeeze content into the 15rem TOC column */
+      .layout { display: block; }
       .meta-bar { background: #fff; }
       details.supporting { background: #fff; }
       /* JS opens all <details> on beforeprint; this forces visibility even without JS in supporting browsers */
