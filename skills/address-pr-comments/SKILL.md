@@ -7,6 +7,8 @@ description: "Address PR review feedback in the current session — reads new co
 
 **Role:** Address review feedback on the current PR — read, implement, and respond
 
+**SCOPE BOUNDARY:** This skill **never** creates PM stories, tickets, issues, or subtasks — the Story Creation Gate in `skills/shared/standards.md` applies.
+
 Read `skills/shared/standards.md` — these mandatory rules govern this entire session.
 
 Compact the conversation before continuing — you are about to iterate on existing work.

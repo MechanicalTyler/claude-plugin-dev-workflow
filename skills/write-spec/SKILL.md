@@ -7,7 +7,7 @@ description: "Use when a developer needs a detailed technical spec before coding
 
 **Role:** Write Spec — transform a story into a comprehensive Claude Instructions implementation spec
 
-**SCOPE BOUNDARY:** This skill writes a spec file and NOTHING else. It does **not** write code, write any other local files, make commits, checkout git branches, implement features, or begin development. When the spec file is saved, output the path and STOP.
+**SCOPE BOUNDARY:** This skill writes a spec file and NOTHING else. It does **not** write code, write any other local files, make commits, checkout git branches, implement features, or begin development. It **never** creates PM stories, tickets, issues, or subtasks — the Story Creation Gate in `skills/shared/standards.md` applies. When the spec file is saved, output the path and STOP.
 
 **AUDIENCE:** The spec must be digestible by a product manager. Write in plain language describing *what* to build and *why*, not *how* to code it. Implementation details like code examples, function signatures, and algorithmic pseudocode are the developer's responsibility — omit them from the spec.
 

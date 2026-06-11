@@ -16,7 +16,7 @@ Read `~/.claude/dev-workflow/config.json`. The `pm_adapter` field names which ad
 
 **4. Story ID in PRs** — each adapter specifies how to reference the story in PR descriptions
 
-**5. Create story** — given a story draft (title, description, story_type, reposToModify, reposToReference, acceptanceCriteria, testingInstructions, originalRequest), create a new story in the PM tool and return its ID and URL. `reposToModify` is a list of strings (one per repo/service). Adapters must follow the Multi-repo story contract below.
+**5. Create story** — given a story draft (title, description, story_type, reposToModify, reposToReference, acceptanceCriteria, testingInstructions, originalRequest), create a new story in the PM tool and return its ID and URL. `reposToModify` is a list of strings (one per repo/service). Adapters must follow the Multi-repo story contract below. This operation may only be executed under the Story Creation Gate in `skills/shared/standards.md` — adapters must not present Create Story as an available operation outside that gate.
 
 ## Multi-repo story contract
 

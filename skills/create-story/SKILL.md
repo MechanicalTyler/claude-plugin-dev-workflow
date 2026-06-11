@@ -21,6 +21,19 @@ Read `skills/shared/repo-discovery.md` — repo discovery procedure referenced i
 
 ---
 
+## Pre-Gate: Invocation Provenance
+
+Before Phase 0, verify how this skill was invoked per the Story Creation Gate in `skills/shared/standards.md`:
+
+- **Explicitly invoked** — the user ran the slash command or made a direct, unambiguous request to create a story/ticket: proceed.
+- **Dispatched by an explicitly-invoked `full-cycle` run**: proceed.
+- **Auto-triggered** — the skill matched a conversational phrase rather than an explicit request: ask the user "You didn't explicitly invoke create-story — create a story for this?" and proceed only on an explicit yes. On no, stop — zero stories created. Ask BEFORE any interviewing, drafting, or adapter calls.
+- **Autonomous mode** — no ability to ask the user: STOP without creating anything and report that a story would be needed, naming what it wanted to create.
+
+The Phase 5 draft-approval gate is unchanged and still applies on every path.
+
+---
+
 ## Phase 0: Discover Repos & Load Context
 
 1. Determine the workspace root — use the current working directory

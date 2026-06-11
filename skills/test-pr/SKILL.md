@@ -7,6 +7,8 @@ description: "Evidence-based functional testing of PRs in a dev/test environment
 
 **Role:** Test PR — functional testing with evidence-based validation
 
+**SCOPE BOUNDARY:** This skill **never** creates PM stories, tickets, issues, or subtasks — the Story Creation Gate in `skills/shared/standards.md` applies.
+
 ## Arguments: $ARGUMENTS
 
 Either a PR number (e.g., `42`) or a PM ticket ID (e.g., `sc-123`) may be passed as the argument.
@@ -29,7 +31,7 @@ Parse the argument from `$ARGUMENTS`.
 2. Load PM adapter per procedure in `skills/shared/adapter-loading.md`
 3. Use the adapter's **"Finding PRs linked to a story"** instructions to look up linked PRs — adapters with native API support (Shortcut, Jira, GitHub Issues) will return authoritative results; others fall back to `gh pr list --state all --search "{story_id}"`
 4. **If exactly one PR is found** → extract its number. Use it as the PR number for all subsequent phases.
-5. **If no PRs are found** → STOP: "No PR found referencing {story_id}. Ensure the PR is linked to the story in the format your PM adapter expects, then try again."
+5. **If no PRs are found** → STOP: "No PR found referencing {story_id}. Ensure the PR is linked to the story in the format your PM adapter expects, then try again." Never create a story, ticket, or issue to fill the gap.
 6. **If multiple PRs are found** → list them (number, title, state) and ask the user: "Multiple PRs reference {story_id}. Which PR number should I test?"
 
 ---

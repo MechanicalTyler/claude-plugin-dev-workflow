@@ -110,6 +110,8 @@ Format: `{KEY}` — use the full issue key as-is (e.g., `PROJ-123`, `ENG-456`)
 
 ## Create Story
 
+**⚠️ Gated operation:** subject to the Story Creation Gate in `skills/shared/standards.md` — never execute unless the gate is satisfied.
+
 Use the `jira` CLI (Ankitpokhrel) to create a new issue. Write the body to a temp file first to avoid shell interpolation issues with multi-line markdown:
 
 ```bash
