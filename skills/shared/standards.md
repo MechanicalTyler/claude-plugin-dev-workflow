@@ -106,6 +106,26 @@ To avoid triggering unnecessary approval prompts:
 
 ---
 
+## Script Logging
+
+**Every script you write — in any language (shell, Python, Go, Node, Ruby, etc.) — must log its progress so a human watching the output can tell where execution is and confirm the script is making forward progress, not silently hung.**
+
+- **Log at every significant step** — Before each meaningful operation (setup, a network/API call, a long loop, a build, a migration, cleanup), emit a log line stating what is about to happen. After it completes, log the result. Silence between steps reads as a hang.
+- **Make logs informative** — Include the step name, relevant identifiers (file, host, record count, iteration `N/total`), and outcome. Avoid bare `echo "done"` / `print("done")` with no context.
+- **Surface progress in long-running work** — In loops or batch operations, log progress periodically (e.g. `Processing 40/200…`) so a stalled iteration is distinguishable from a slow-but-working one.
+- **Flush logs immediately — never let them buffer until the script ends.** Many runtimes buffer stdout/stderr (especially when output is piped, not a TTY), so progress lines pile up and dump all at once at exit — which defeats the entire purpose and makes a working script look hung. Force line-buffered or unbuffered output and flush after each significant log:
+  - **Python** — run with `python -u`, or set `PYTHONUNBUFFERED=1`, or `print(..., flush=True)`, or `logging` configured to a stream handler.
+  - **Go** — `os.Stderr`/`os.Stdout` writes are unbuffered; if you wrap them in a `bufio.Writer`, call `Flush()` after each log.
+  - **Node** — `console.error`/`console.log` to a TTY flush per call; when piping, prefer `process.stderr.write` and avoid buffering your own writes.
+  - **Shell** — `echo`/`printf` are unbuffered, but wrap downstream pipelines in `stdbuf -oL -eL` (or the tool's own unbuffered flag) when they buffer.
+- **Log to stderr for diagnostics** — Send progress/status lines to stderr so they don't pollute a script's real stdout output that may be piped or captured.
+- **Timestamp long-running scripts** — For scripts that run more than a few seconds, prefix log lines with a timestamp so elapsed time between steps is visible.
+- **Log failures loudly** — On error, log the failing step, the operation, and the exit code or error message before exiting. Never fail silently.
+
+The goal: anyone tailing the output can answer "what is it doing right now, and is it stuck?" at any moment — in real time, not after the script finishes.
+
+---
+
 ## File and Command Operations
 
 - **Use Write tool for files** — Never use `cat` or `echo` with redirection to write files
