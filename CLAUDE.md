@@ -24,12 +24,13 @@ Skills are invoked directly by name:
 | `/start start-debugging story-id --rework` | `dev-workflow:start-debugging` (rework mode) | Address review feedback |
 | `/start create-story` | `dev-workflow:create-story` | Interview user → draft → submit story |
 | `/start full-cycle [story-id\|description]` | `dev-workflow:full-cycle` | End-to-end lifecycle orchestrator looping review/test until pass |
+| `/start epic [summary\|epic-slug]` | `dev-workflow:epic` | Decompose a large initiative into a self-managed tasklist, then autonomously drive each task to a merged PR |
 
 ### Adapter System
 
 PM and notes integrations are **pluggable adapters** with a common interface defined in `skills/pm-adapter/interface.md` and `skills/notes-adapter/interface.md`.
 
-**PM Adapters** (`skills/pm-adapter/`): Shortcut, Linear, Jira, GitHub Issues
+**PM Adapters** (`skills/pm-adapter/`): Shortcut, Linear, Jira, GitHub Issues, Tasklist (file-backed, used by the `epic` orchestrator — no external PM tool)
 **Notes Adapters** (`skills/notes-adapter/`): Local filesystem (`docs/specs/`), Obsidian vault
 
 **Override mechanism:** User-provided adapters at `~/.claude/skills/pm-adapter/{name}.md` or `~/.claude/skills/notes-adapter/{name}.md` take precedence over built-in adapters.
@@ -49,6 +50,8 @@ Skills invoke superpowers throughout their workflows:
 
 - **review-pr skill has two modes:** First Review (exhaustive 4-perspective analysis) vs. Re-Review (verify previous `CHANGES_REQUESTED` items were addressed, new findings only if they meet the Critical Exception Threshold)
 - **start-debugging skill is a unified 3-mode skill:** Debug mode (no args), Development mode (story-id), Rework mode (story-id + `--rework`)
+- **epic skill is an orchestrator-only initiative driver:** deep discovery → one up-front consensus gate → self-managed `tasklist.md` (Mermaid graph + embedded per-task description/status) at `~/.claude/dev-workflow/epics/[epic-slug]/` → autonomous scheduler (cross-repo concurrent, same-repo sequential, one in-flight PR per repo, no worktrees) driving each task through `full-cycle` pinned to the `tasklist` adapter. On reviewer+tester dual approval it merges the PR (overriding full-cycle's never-merge rule) and marks the task done. Epic PRs carry **no** `sc-` ID (documented exception). Bug intake: a subagent *reports* a defect from a prior task; the *orchestrator* appends a priority-scheduled `bug` task. Resumable from `tasklist.md`.
+- **tasklist PM adapter is file-backed, not config-selected:** the `epic` orchestrator pins it per dispatch (supplying the tasklist path + task ID in the subagent prompt) rather than mutating global `config.json`. It implements the full pm-adapter interface against `tasklist.md` so `full-cycle` and the stage skills run unchanged.
 - **Reality Filter:** All skills enforce labeling unverified content as `[Inference]`, `[Speculation]`, or `[Unverified]`
 - **Config location:** User configuration lives at `~/.claude/dev-workflow/config.json`, not in the repo
 
@@ -64,8 +67,9 @@ skills/
   start-debugging/     # Debug/dev/rework unified skill
   create-story/        # Interactive interview → PM story creation
   full-cycle/          # End-to-end lifecycle orchestrator (sequences all stages)
+  epic/                # Initiative orchestrator: discovery → consensus → self-managed tasklist → autonomous per-task full-cycle drive
   address-pr-comments/ # Address review feedback in current session
-  pm-adapter/          # PM tool adapters + interface spec
+  pm-adapter/          # PM tool adapters + interface spec (includes file-backed tasklist adapter)
   notes-adapter/       # Notes storage adapters + interface spec
   shared/              # Shared protocol docs (standards, adapter-loading, context-compaction, ...)
 hooks/
@@ -77,6 +81,9 @@ hooks/
 
 Runtime state (not committed): `~/.claude/dev-workflow/state/`
 - `{story-id}.json` — per-story checkpoint (stage, PR numbers, loop counts, next action)
+
+Epic state (not committed): `~/.claude/dev-workflow/epics/[epic-slug]/`
+- `tasklist.md` — the epic's single source of truth: Mermaid dependency graph + embedded per-task description/AC/testing/status. Doubles as durable cross-task resume state.
 - `.compact-request` — sentinel written by full-cycle at a high-context handoff (inside tmux only)
 - `.compact-request.failed` — written by compact-injector on injection failure
 - `context-meter-tier.txt` — last announced meter tier (prevents repeat emissions)
