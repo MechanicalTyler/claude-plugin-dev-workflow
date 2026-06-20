@@ -117,6 +117,21 @@ Also check PR title if not found in body.
 
 **NEVER run terraform apply.** Only run terraform plan for validation.
 
+### Mandatory Dev Build CI Gate
+
+> **NON-SKIPPABLE — DEV BUILD CI.** Every review — including reviews dispatched autonomously by `epic` or `full-cycle` — MUST trigger the **dev build CI** and wait for it to reach a terminal state before any code review begins. This gate is mandatory and has no exceptions.
+>
+> - **Always run it fresh on the PR's current HEAD.** Trigger a new dev build CI run against the PR branch's latest commit. Do not reuse, point at, or "count" a pre-existing run — a prior run does not satisfy this gate.
+> - **You may NOT skip this step for any of the following reasons** (each is an explicitly forbidden rationalization):
+>   - a build run already exists on the branch,
+>   - the dev build CI is slow and you are under time pressure,
+>   - you are running unattended / autonomously / inside an orchestrator,
+>   - the diff "looks safe" or the code "obviously builds."
+> - **Code review must not begin until the dev build CI reaches a terminal state** (success, failure, or cancelled). If it fails, stop and report per the failure handling below — do not proceed to the multi-perspective review.
+> - **An approval produced without a fresh dev build CI run on current HEAD is invalid.** If you reach Phase 6 and the gate was not satisfied, return to this gate and run it.
+
+The dev build CI is the build workflow described under "Load CI Configuration" and "Required Workflows" below; this gate makes triggering and waiting on it non-negotiable. Run it as the first action of Phase 3.
+
 ### Load CI Configuration
 
 Read `~/.claude/dev-workflow/config.json` for `review_ci_command`.

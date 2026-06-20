@@ -118,6 +118,20 @@ Extract any stated deviations or scope adjustments. Carry these forward as **Ack
 
 ## Phase 3: Deploy
 
+### Mandatory Dev Deploy CI Gate
+
+> **NON-SKIPPABLE — DEV DEPLOY CI.** Every test run — including runs dispatched autonomously by `epic` or `full-cycle` — MUST run the **dev deploy CI** to deploy the PR branch fresh to the dev/test environment and wait for it to succeed before executing any test scenario. This gate is mandatory and has no exceptions.
+>
+> - **Always deploy the branch fresh.** Trigger the configured deploy CI on the PR branch's current HEAD on every run. Do not skip the deploy and test against whatever is already running.
+> - **You may NOT skip this step for any of the following reasons** (each is an explicitly forbidden rationalization):
+>   - the environment "looks deployed" or appears to already have this branch,
+>   - a prior deploy ran earlier in the cycle,
+>   - the dev deploy CI is slow and you are under time pressure,
+>   - you are running unattended / autonomously / inside an orchestrator.
+> - **No test scenario may execute until the dev deploy CI completes successfully.** If the deploy fails, stop and report the failure in the test report — do not test against a stale or partial environment.
+>
+> The dev deploy CI is the `deploy_command` deployment described below; this gate makes running it fresh and waiting for success non-negotiable. Run it as the first action of Phase 3.
+
 Read `~/.claude/dev-workflow/config.json` for `deploy_command`.
 
 `deploy_command` is a natural language instruction describing how to deploy the branch to the test/dev environment. Interpret it and take the appropriate action.
