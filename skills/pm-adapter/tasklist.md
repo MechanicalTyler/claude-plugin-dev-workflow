@@ -43,12 +43,15 @@ exactly these):
 | `in-progress` | A `full-cycle` run is actively driving this task (spec/development). |
 | `in-review` | The task's PR is open and under code review. |
 | `in-test` | The task's PR passed review and is under functional testing. |
-| `blocked` | Cannot proceed autonomously (loop-safety exhausted, un-mergeable, missing dependency). Carries a recorded reason. |
-| `done` | PR merged; task complete. Terminal. |
+| `awaiting-merge` | The PR is both review-approved and test-approved (dual approval) and is open, waiting for a **human** to merge it. The epic never merges; it pauses this task here. Not an error state. |
+| `blocked` | Cannot proceed autonomously (loop-safety exhausted, un-mergeable, missing dependency, or an awaiting-merge PR was closed without merging). Carries a recorded reason. |
+| `done` | PR merged by a human; task complete. Reached only when a human merge is detected on a later resume. Terminal. |
 
-Legal transitions: `pending → in-progress → in-review → in-test → done`. Any non-terminal status
-may transition to `blocked`. A `blocked` task may return to `pending` (or the status it held) when
-the blocker is cleared on a resume. `done` is terminal.
+Legal transitions: `pending → in-progress → in-review → in-test → awaiting-merge → done`. The
+`awaiting-merge → done` transition occurs **only** when a human merge is detected on a resume — the
+epic never performs it inline during a run. Any non-terminal status may transition to `blocked`
+(including `awaiting-merge`, when its PR is closed unmerged). A `blocked` task may return to
+`pending` (or the status it held) when the blocker is cleared on a resume. `done` is terminal.
 
 ## Tasklist File Format
 
@@ -85,6 +88,7 @@ flowchart TD
   classDef inprogress fill:#cfe,stroke:#3a3;
   classDef inreview fill:#ccf,stroke:#33a;
   classDef intest fill:#ffe,stroke:#aa3;
+  classDef awaitingmerge fill:#fef0d0,stroke:#d90;
   classDef blocked fill:#fcc,stroke:#a33;
   classDef done fill:#cfc,stroke:#3a3;
 ​```
@@ -172,8 +176,8 @@ metadata: `Status`, `Repo`, `Type`, `Depends on`, `Branch`, `PR`, and the `### D
 **When `Status` changes, also update the Mermaid graph** so it stays a live status board:
 
 1. Rewrite the node label's trailing ` · {status}` segment to the new status.
-2. Rewrite the node's `:::{class}` to the matching class (`done`, `inreview`, `intest`,
-   `inprogress`, `blocked`, `pending`).
+2. Rewrite the node's `:::{class}` to the matching class (`done`, `awaitingmerge`, `inreview`,
+   `intest`, `inprogress`, `blocked`, `pending`).
 
 A status change that is not reflected in the Mermaid node is a defect — the graph and the section
 must always agree.
@@ -188,8 +192,9 @@ them):
 | `start-development` begins | `in-progress` |
 | PR opened | `in-review` |
 | review approved, `test-pr` begins | `in-test` |
-| epic merges the PR | `done` |
-| task cannot proceed autonomously | `blocked` (record reason as a comment) |
+| review **and** test both approved (dual approval) | `awaiting-merge` (PR left open for a human to merge — epic never merges) |
+| human merge of an awaiting-merge PR detected on resume | `done` |
+| task cannot proceed autonomously (incl. an awaiting-merge PR closed unmerged) | `blocked` (record reason as a comment) |
 
 This adapter exposes `Status` as a writable field; it does **not** itself decide when to change it —
 the stage skills and the epic orchestrator do, via this capability.
@@ -261,8 +266,10 @@ Given `task_id`, return the task's PR:
 Unlike the Shortcut adapter, there is no external workflow with named states — the task `Status`
 field **is** the lifecycle. The stage → status mapping in capability 3 is the equivalent of the
 Shortcut adapter's "Story Lifecycle & State Transitions" table. The epic orchestrator owns the
-`done` transition (it merges then marks `done`); stage skills own the intermediate transitions for
-the task they are driving.
+`awaiting-merge` and `done` transitions — on dual approval it sets `awaiting-merge` and leaves the
+PR open for a human (it **never** merges), and on a later resume it sets `done` only when it detects
+that a human merged the PR. Stage skills own the intermediate transitions for the task they are
+driving.
 
 ## Error handling
 

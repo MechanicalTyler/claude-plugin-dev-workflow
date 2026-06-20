@@ -6,7 +6,8 @@ description: "Use when a large initiative must be decomposed into many coordinat
 # Epic
 
 **Role:** Orchestrator — take one high-level feature summary, reach consensus on a full task
-breakdown, then autonomously drive every task to a merged PR.
+breakdown, then autonomously drive every task to a review- and test-approved open PR, leaving the
+merge to a human. The epic never merges.
 
 The orchestrator inherits the main session model — it must stay an orchestrator (see the mandate
 below). Every unit of real work (brainstorming, repo discovery, spec writing, development, review,
@@ -21,13 +22,18 @@ testing, fixing) is dispatched to a **subagent**, whose model is resolved from c
 - writing and updating `tasklist.md` (via the `tasklist` adapter),
 - computing the ready set and scheduling,
 - dispatching subagents,
-- merging an approved PR (via the git/gh wrapper) and marking the task done,
+- marking a dual-approved task `awaiting-merge`, tracking its open PR, and — on a later resume —
+  detecting a human merge and advancing the task to `done`,
 - the end-of-run report.
+
+**The epic never merges a PR.** On dual approval it pauses the task at `awaiting-merge` and leaves
+the PR open for a human; it never runs a merge command (`gh … pr merge`, `gh-as-app.sh … pr merge`,
+or any equivalent). The only path to `done` is a human merge detected on a subsequent resume.
 
 It **never** writes feature code, specs, reviews, or tests itself, and **never** creates a task
 on its own initiative outside the consensus gate or a subagent's bug report. If you find yourself
-authoring a spec, editing source, or reviewing a diff in the main agent — stop; that work belongs in
-a dispatched subagent.
+authoring a spec, editing source, reviewing a diff, or merging a PR in the main agent — stop; that
+work belongs in a dispatched subagent or, for the merge, to a human.
 
 ## Arguments: $ARGUMENTS
 
@@ -104,7 +110,8 @@ Do **not** write `tasklist.md` yet — nothing is created before the gate.
 Present the **full proposed tasklist** to the user — the Mermaid ordering plus every task's
 description, AC, testing, repo, and dependencies — and iterate until they **explicitly approve**.
 
-- This is the **one** consensus gate. After approval the run is autonomous, including merges.
+- This is the **one** consensus gate. After approval the run is autonomous, but it stops short of
+  merging — each task pauses at an open, dual-approved PR for a human to merge.
 - Render the proposal per `skills/shared/standards.md` Output Format rules (HTML if written to a file
   for the user to read; otherwise the Mermaid + task list inline).
 - In autonomous mode there is no gate to run — a new epic cannot reach this phase autonomously
@@ -133,11 +140,14 @@ task set. All creation happens here, in the orchestrator.
 The scheduler decides what runs next. It reads `tasklist.md` as the source of truth.
 
 1. **Compute the ready set.** A task is *ready* when its status is `pending` and every task in its
-   `depends_on` is `done`.
+   `depends_on` is `done` (i.e. its dependency's PR has been **merged by a human**). An
+   `awaiting-merge` dependency does **not** satisfy a dependent — because epic never merges, dependents
+   naturally pause until a human merges the dependency and a later resume advances it to `done`.
 2. **Apply the parallelism rule:**
    - **One in-flight task per repo.** A repo is "in flight" if any of its tasks is `in-progress`,
-     `in-review`, or `in-test`. Do not schedule a second task for a repo that already has one in
-     flight.
+     `in-review`, `in-test`, or `awaiting-merge`. An `awaiting-merge` task's PR is still open, so it
+     keeps its repo in flight and blocks the next same-repo task until a human merges it. Do not
+     schedule a second task for a repo that already has one in flight.
    - **Cross-repo concurrency.** Ready tasks in distinct repos run **concurrently**, each as its own
      dispatched subagent.
    - **No git worktrees.** Each repo's single in-flight task works in that repo's own checkout. Do
@@ -147,8 +157,13 @@ The scheduler decides what runs next. It reads `tasklist.md` as the source of tr
 4. For every task selected this round, go to **Phase 7** (drive). Dispatch the concurrent ones in a
    single batch.
 5. When the ready set is empty:
-   - If any task is still in flight, wait for it to complete (Phase 8), then recompute from step 1.
-   - If nothing is in flight and nothing is ready → go to **Phase 10** (terminate).
+   - If any task is still **actively** in flight (`in-progress`, `in-review`, `in-test`), wait for it
+     to complete (Phase 8), then recompute from step 1.
+   - An `awaiting-merge` task is **never waited on** — only a human can advance it, which cannot
+     happen inside this run. Do not block on it.
+   - If nothing is actively in flight and nothing is ready — i.e. every remaining task is
+     `awaiting-merge` and/or `blocked` — go to **Phase 10** (terminate) rather than hanging on a
+     merge the epic cannot perform.
 
 ---
 
@@ -170,8 +185,9 @@ For each scheduled task, dispatch **one** subagent that runs `full-cycle` for th
 > override into any nested `finishing-a-development-branch`.
 >
 > full-cycle enters at write-spec (the task exists with no spec) and proceeds through development,
-> the review loop, and the test loop autonomously. **Do not merge** — report the PR's final review
-> and test decisions back; the orchestrator merges.
+> the review loop, and the test loop autonomously. **Do not merge.** Neither you nor the orchestrator
+> merges this PR — a human merges it later. Report the PR's final review and test decisions back; on
+> dual approval the orchestrator marks the task `awaiting-merge` and leaves the PR open.
 >
 > **Bug reporting:** If you discover a defect attributable to a previously-completed task, include in
 > your result a `bug-report` describing the defect, the affected repo, and the suspected source task
@@ -179,25 +195,38 @@ For each scheduled task, dispatch **one** subagent that runs `full-cycle` for th
 
 The subagent returns its autonomous-mode key/value result. The orchestrator does **not** trust a
 self-reported pass/fail — it re-confirms PR state authoritatively from GitHub (per full-cycle's
-"Reading the Authoritative Review Decision") before merging.
+"Reading the Authoritative Review Decision") before marking the task `awaiting-merge`.
 
 ---
 
-## Phase 8: Completion + Merge
+## Phase 8: Completion → Awaiting Merge (no merge)
 
 When a task's `full-cycle` run reports review-approved **and** test-approved:
 
 1. Re-read the PR's authoritative review and test decisions from GitHub (dispatch the decision-read
    as a subagent so raw JSON stays out of the orchestrator). Both must be `APPROVED`.
-2. **Merge** the PR using the git/gh wrapper (`gh-as-app.sh <persona> pr merge {PR} …`). This
-   intentionally overrides full-cycle's "never merge" rule — for epic, merge-on-dual-approval is the
-   completion step.
-3. Via the `tasklist` adapter's **Update story**, set the task `Status` to `done` (which also updates
-   its Mermaid node).
-4. **If the merge cannot complete** (e.g. permissions, conflicts): set the task `Status` to `blocked`,
-   record the reason as a comment via the adapter, and continue with other tasks — do **not** silently
-   hang. *[Inference — explicit failure handling per the spec.]*
-5. Recompute the ready set (Phase 6); newly unblocked tasks become schedulable.
+2. **Do not merge.** The epic never merges. Via the `tasklist` adapter's **Update story**, set the
+   task `Status` to `awaiting-merge` (which also updates its Mermaid node), and confirm the
+   `PR` field records the open PR URL so it can be tracked and reported.
+3. Leave the PR **open** for a human to merge. Pause this line of work: the task's repo stays in
+   flight (its PR is open), so the next same-repo task waits until a human merges it. Dependent tasks
+   stay paused because they require `done` (a human merge), not `awaiting-merge`.
+4. Do **not** wait on the `awaiting-merge` task — a human must act, which cannot happen inside this
+   run. Recompute the ready set (Phase 6); only tasks unblocked by already-`done` dependencies become
+   schedulable.
+
+### Detecting a human merge (on resume)
+
+The `awaiting-merge → done` transition happens **only** on a later resume, never inline during a run.
+When the epic is re-invoked against the slug, it reconciles each `awaiting-merge` task against GitHub
+(see Resumability): for each such task, read the PR's state with the `developer` persona
+(`gh-as-app.sh developer pr view {PR} …` under the Vandog wrapper standard, or `gh pr view` otherwise)
+— a **read**, never a merge.
+
+- **PR merged** (a human merged it) → set `Status` to `done` via the adapter; its dependents become
+  schedulable.
+- **PR closed without merging** → set `Status` to `blocked`, record the reason as a comment.
+- **PR still open** → leave it `awaiting-merge`; report it again at end of run.
 
 ---
 
@@ -221,22 +250,30 @@ work, they don't create tasks" and keeps creation inside the orchestrator's cons
 ## Phase 10: Blocked-Task Handling & Termination
 
 **Blocked tasks.** A task is `blocked` when it exhausts full-cycle's loop-safety guard (review/test
-never converges), cannot be merged, or otherwise cannot complete autonomously. Mark it `blocked` via
-the adapter with the outstanding feedback recorded as a comment, then **continue with other unblocked
-tasks**. A block on one task never halts the whole epic. *[Inference — derived from the spec's
-error-scenario requirements.]*
+never converges), has an `awaiting-merge` PR that a human closed without merging, or otherwise cannot
+proceed autonomously. Mark it `blocked` via the adapter with the outstanding feedback recorded as a
+comment, then **continue with other unblocked tasks**. A block on one task never halts the whole
+epic. Note that `awaiting-merge` is **not** a blocked state — it is a healthy pause waiting on a human
+merge, reported separately below.
 
-**Termination.** Stop when no task is runnable — all tasks are `done`, or every remaining task is
-`blocked`. Emit an end-of-run report:
+**Termination.** Stop when no task is runnable — i.e. every remaining task is `done`,
+`awaiting-merge`, and/or `blocked` (nothing is actively in flight or ready). The epic terminates here
+rather than hanging on merges it cannot perform. Emit an end-of-run report:
 
 - epic slug
 - per-task final status
-- PR URLs (and which tasks were merged)
+- **Open PRs awaiting merge** — prominently list every `awaiting-merge` task with its PR URL, and
+  a clear instruction: **"Merge these PRs, then re-invoke `epic` against this slug to resume —
+  merged tasks advance to done and unblock their dependents."**
+- PR URLs for all tasks
 - any blocked tasks, each with its reason
 
 In autonomous mode, emit the flat key/value summary per `standards.md` (`service-name`, `pm-key`,
-`pr-number`, `status`, `message`, plus highest-signal extras such as `branch`). For an epic the
-`pm-key` is the epic slug and `pr-number` may be a count or the list of merged PRs.
+`pr-number`, `status`, `message`, plus highest-signal extras). For an epic the `pm-key` is the epic
+slug and `pr-number` may be a count or the list of open PRs. When tasks remain at `awaiting-merge`,
+`status` reflects the pause (the run did not fully complete because PRs await a human merge), and
+include a `message` directing the human to merge the listed PRs and re-invoke to resume — for example
+an extra key such as `awaiting-merge` listing those PR URLs.
 
 ---
 
@@ -245,9 +282,15 @@ In autonomous mode, emit the flat key/value summary per `standards.md` (`service
 `tasklist.md` **is** the durable epic state. On re-invocation against an existing slug:
 
 1. Read `tasklist.md`; treat every task `Status` as authoritative.
-2. Recompute the ready set from statuses (Phase 6). Do **not** recreate `done` tasks or re-merge
-   merged PRs.
-3. Resume scheduling. full-cycle's own per-task checkpoints under `~/.claude/dev-workflow/state/`
+2. **Reconcile every `awaiting-merge` task against GitHub first** (per Phase 8 → "Detecting a human
+   merge"). For each, read the PR state with the `developer` persona (a read, never a merge):
+   - **merged** → set `Status` to `done`;
+   - **closed without merging** → set `Status` to `blocked` with a recorded reason;
+   - **still open** → leave it `awaiting-merge`.
+   Do this before computing the ready set so a human merge performed between runs unblocks dependents.
+3. Recompute the ready set from statuses (Phase 6). Do **not** recreate `done` tasks, and never merge
+   any PR — only humans merge.
+4. Resume scheduling. full-cycle's own per-task checkpoints under `~/.claude/dev-workflow/state/`
    remain in place for in-task resume — the tasklist is the cross-task source of truth, those
    checkpoints are the within-task one.
 
@@ -259,9 +302,12 @@ In autonomous mode, emit the flat key/value summary per `standards.md` (`service
 - `tasklist.md` was written at the configured path: a Mermaid graph ordering tasks with
   parallelization, each task's full description embedded.
 - Each task was driven through `full-cycle` on the `tasklist` adapter with zero external PM calls;
-  on dual approval its PR was merged and the task marked `done`.
-- Parallelism held: cross-repo concurrent, same-repo sequential, one in-flight PR per repo, no
-  worktrees.
+  on dual approval its PR was **left open** and the task marked `awaiting-merge`. The epic merged
+  nothing — a task reaches `done` only after a human merge is detected on a later resume.
+- Every open PR awaiting merge is tracked in `tasklist.md` and reported in the end-of-run report with
+  a merge-then-resume instruction.
+- Parallelism held: cross-repo concurrent, same-repo sequential, one in-flight PR per repo (an
+  awaiting-merge PR counts as in flight), no worktrees.
 - The orchestrator only orchestrated — no feature code, spec, review, or test authored in the main
   agent.
 - Bug reports from subagents became orchestrator-created, priority-scheduled bug tasks.

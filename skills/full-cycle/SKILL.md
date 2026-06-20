@@ -185,6 +185,8 @@ For each PR produced by start-development:
 Dispatch a subagent (model: resolved from `models.stages.review-pr` → `models.review` → default `opus`) whose prompt instructs it to:
 
 > Invoke Skill: `dev-workflow:review-pr` with the PR number, running autonomously.
+>
+> MANDATORY: Even though you are running autonomously, you MUST trigger the **dev build CI** fresh on the PR's current HEAD and wait for it to reach a terminal state before reviewing code. Do not skip it because a prior run exists, because it is slow, or because you are unattended. An approval returned without a fresh dev build CI run on current HEAD is invalid — the orchestrator will treat it as a failed review.
 
 After it returns, read the PR's latest **review** decision authoritatively from GitHub (see below). Use that — not the subagent's self-report — to decide the next step.
 
@@ -212,6 +214,8 @@ Once the PR is review-approved:
 Dispatch a subagent (model: resolved from `models.stages.test-pr` → `models.review` → default `opus`) whose prompt instructs it to:
 
 > Invoke Skill: `dev-workflow:test-pr` with the PR number, running autonomously.
+>
+> MANDATORY: Even though you are running autonomously, you MUST run the **dev deploy CI** to deploy the branch fresh and wait for it to succeed before executing any test scenario. Do not skip it because the environment "looks deployed," because it is slow, or because you are unattended. A test result returned without a fresh dev deploy is invalid — the orchestrator will treat it as a failed test.
 
 After it returns, read the PR's latest **test** decision authoritatively from GitHub.
 
