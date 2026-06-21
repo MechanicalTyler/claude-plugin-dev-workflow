@@ -65,6 +65,54 @@ These assignments override the generic guidance in `superpowers:subagent-driven-
 
 ---
 
+## Subagent Dispatch (fresh context per stage)
+
+**Every non-interactive stage runs in its own dispatched subagent — never inline.**
+Invoking the `Skill` tool loads that skill's content into the **current** context; it does
+**not** spawn a subagent. So an orchestrator that wants a stage to run in a fresh,
+isolated context MUST dispatch it with the **Agent tool**, passing a `subagent_type` — it
+must never reach for the `Skill` tool itself to run a downstream stage.
+
+This plugin ships dedicated worker agent types in `agents/` so a dispatch cannot silently
+collapse into an inline `Skill` call (the `subagent_type` parameter is a hard reference to
+a worker, not a prose instruction the model can skim past). Map each stage to its worker:
+
+| Stage / dispatch | `subagent_type` | Default model |
+|------------------|-----------------|---------------|
+| write-spec (autonomous path only) | `dev-workflow-spec-writer` | `sonnet` |
+| start-development | `dev-workflow-developer` | `sonnet` |
+| review-pr | `dev-workflow-reviewer` | `opus` |
+| test-pr | `dev-workflow-tester` | `opus` |
+| address-pr-comments (fix loops) | `dev-workflow-fixer` | `sonnet` |
+| entry/resume detection + decision read | `dev-workflow-pr-state-reader` | `sonnet` |
+| full-cycle driven per-task by `epic` | `dev-workflow-orchestrator` | inherit |
+
+The `model` parameter on the Agent call **always wins** over the worker's frontmatter
+`model:`, so config-driven model resolution (the order above) is preserved — pass the
+resolved model on every dispatch. Each worker's body invokes the matching
+`dev-workflow:{stage}` skill autonomously, so the stage logic, resumability, and loop
+behavior are unchanged; only the dispatch boundary is made explicit.
+
+Interactive stages (create-story, write-spec in the standalone full-cycle path) still run
+in the **main agent** so their user-facing gates work — do not dispatch a worker for those.
+
+## Subagent Nesting (version-dependent)
+
+As of **Claude Code v2.1.172**, a subagent may itself spawn subagents — up to a **fixed
+depth of 5** — provided the `Agent` tool is in its `tools` list (omitting `tools` grants
+all tools, including `Agent`; explicitly listing `tools` without `Agent` blocks nesting by
+design). Only the top-level subagent's summary returns to its caller.
+
+This is what lets `epic → dev-workflow-orchestrator (full-cycle) → per-stage worker` run
+each stage in fresh context (depth 3, well under the cap). On builds **older than
+v2.1.172**, a dispatched subagent cannot nest, so a worker that would dispatch further
+stages instead runs them inline within its own context — still isolated per task, just not
+per stage. Workers that must fan out (developer, reviewer, tester, orchestrator) therefore
+leave `tools` unrestricted; workers that never fan out (fixer, pr-state-reader) restrict
+`tools` and omit `Agent`.
+
+---
+
 ## Output Mode Detection
 
 **Determine mode at the start of each session — it governs how you deliver your final response.**

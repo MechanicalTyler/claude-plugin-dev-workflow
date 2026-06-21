@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**dev-workflow** is a Claude plugin (v2.17.0) that provides action-based development workflow orchestration with pluggable PM and notes adapters. It enables specialized workflows (Start Development, Story to Spec, Review PR, Test PR, Start Debugging, Create Story, Full Cycle) through structured, quality-gated stages.
+**dev-workflow** is a Claude plugin (v2.22.0) that provides action-based development workflow orchestration with pluggable PM and notes adapters. It enables specialized workflows (Start Development, Story to Spec, Review PR, Test PR, Start Debugging, Create Story, Full Cycle) through structured, quality-gated stages.
 
 **Dependency:** Requires the `superpowers` plugin to be installed — it provides core methodology skills (TDD, debugging, brainstorming, subagent orchestration, verification).
 
@@ -52,6 +52,8 @@ Skills invoke superpowers throughout their workflows:
 - **start-debugging skill is a unified 3-mode skill:** Debug mode (no args), Development mode (story-id), Rework mode (story-id + `--rework`)
 - **epic skill is an orchestrator-only initiative driver:** deep discovery → one up-front consensus gate → self-managed `tasklist.md` (Mermaid graph + embedded per-task description/status) at `~/.claude/dev-workflow/epics/[epic-slug]/` → autonomous scheduler (cross-repo concurrent, same-repo sequential, one in-flight PR per repo, no worktrees) driving each task through `full-cycle` pinned to the `tasklist` adapter. On reviewer+tester dual approval it does **not** merge — it marks the task `awaiting-merge`, tracks the open PR, and pauses that line of work for a human to merge; a later resume detects the human merge and advances the task to done (unblocking dependents). Epic PRs carry **no** `sc-` ID (documented exception). Bug intake: a subagent *reports* a defect from a prior task; the *orchestrator* appends a priority-scheduled `bug` task. Resumable from `tasklist.md`.
 - **tasklist PM adapter is file-backed, not config-selected:** the `epic` orchestrator pins it per dispatch (supplying the tasklist path + task ID in the subagent prompt) rather than mutating global `config.json`. It implements the full pm-adapter interface against `tasklist.md` so `full-cycle` and the stage skills run unchanged.
+- **Stage isolation via dedicated subagent types:** the orchestrators (`full-cycle`, `epic`) run every non-interactive stage in a fresh, isolated context by **dispatching the Agent tool** with a stage-specific `subagent_type` from `agents/` — never by invoking the `Skill` tool themselves (a `Skill` call loads into the *current* context, which is what made stages run in one agent). Each worker's body invokes the matching `dev-workflow:{stage}` skill autonomously, so stage logic/resumability/loops are unchanged; the `model` parameter on the dispatch overrides the worker's frontmatter default, preserving config-driven model resolution. See `skills/shared/standards.md` → "Subagent Dispatch". Workers that fan out (developer/reviewer/tester/orchestrator) keep the `Agent` tool; `fixer` and `pr-state-reader` are tool-restricted.
+- **Subagent nesting (Claude Code v2.1.172+):** a subagent may nest further subagents (fixed depth-5 cap) when it has the `Agent` tool. This is what lets `epic → dev-workflow-orchestrator (full-cycle) → per-stage worker` give each stage fresh context (depth 3). On builds older than v2.1.172, nesting is unavailable and a task's stages run inline within its worker — isolated per task, not per stage. See `skills/shared/standards.md` → "Subagent Nesting".
 - **Reality Filter:** All skills enforce labeling unverified content as `[Inference]`, `[Speculation]`, or `[Unverified]`
 - **Config location:** User configuration lives at `~/.claude/dev-workflow/config.json`, not in the repo
 
@@ -72,6 +74,14 @@ skills/
   pm-adapter/          # PM tool adapters + interface spec (includes file-backed tasklist adapter)
   notes-adapter/       # Notes storage adapters + interface spec
   shared/              # Shared protocol docs (standards, adapter-loading, context-compaction, ...)
+agents/                # Dedicated subagent types dispatched by the orchestrators (one per pipeline role)
+  dev-workflow-spec-writer.md      # write-spec (autonomous path only)
+  dev-workflow-developer.md        # start-development
+  dev-workflow-reviewer.md         # review-pr
+  dev-workflow-tester.md           # test-pr
+  dev-workflow-fixer.md            # address-pr-comments (review/test fix loops; tool-restricted)
+  dev-workflow-pr-state-reader.md  # entry/resume detection + authoritative decision read (read-only)
+  dev-workflow-orchestrator.md     # full-cycle, dispatched per-task by epic (retains Agent tool to nest)
 hooks/
   context-meter.sh     # PostToolUse: token usage meter — emits at 60%/75% of 200k baseline
   compact-injector.sh  # Stop: consumes .compact-request sentinel and injects /compact via tmux

@@ -129,7 +129,7 @@ Level 2 (concurrent, after Level 1): [repo-d, repo-e]
 
 #### Step 3 — Execute level by level
 
-**All sub-agent dispatch originates from this main (orchestrator) agent.** Claude Code sub-agents cannot themselves spawn sub-agents (they have no Task tool), so each per-repo sub-agent must perform its own implementation directly rather than delegating further. This trades away per-task sub-agent parallelism inside a single repo (not possible in Claude Code) but preserves cross-repo concurrency across a level.
+**This agent dispatches one sub-agent per repo for the level.** Each per-repo sub-agent performs its own implementation directly. As of Claude Code **v2.1.172** a sub-agent *may* itself nest further sub-agents (fixed depth-5 cap, when it has the `Agent` tool — see `skills/shared/standards.md` → "Subagent Nesting"), so this stage may run as a nested subagent under `full-cycle`/`epic` and still dispatch its per-repo workers. On builds older than v2.1.172, nesting is unavailable and the per-repo sub-agents run inline within whichever context dispatched this stage. Either way, this preserves cross-repo concurrency across a level; per-task parallelism *inside* a single repo is not pursued here.
 
 Process each level as follows:
 
