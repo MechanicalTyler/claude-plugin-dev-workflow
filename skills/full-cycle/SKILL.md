@@ -68,20 +68,28 @@ gh pr checkout {PR_NUMBER}
 
 Pass the explicit PR number in the prompt as well, so the subagent never has to guess or ask.
 
-**Subagent model selection (per `standards.md` → "Subagent Model Selection"):**
+**How to dispatch (mandatory — per `standards.md` → "Subagent Dispatch"):**
 
-Resolve each dispatch's model using the resolution order: `models.stages.<stage-key>` → `models.<task-type>` → built-in default. Built-in defaults:
+Every subagent stage below runs in a **fresh, isolated context**. To get that, you MUST
+dispatch it with the **Agent tool**, passing the stage's dedicated `subagent_type`. Do
+**not** invoke the `Skill` tool yourself for a downstream stage — `Skill` loads content
+into *your* context (no subagent), which is exactly the "everything runs in one agent"
+failure this design prevents. Each worker's body invokes the matching
+`dev-workflow:{stage}` skill autonomously, so stage behavior is unchanged.
 
-| Stage / dispatch | `stages` key | Task type | Default |
-|-----------------|--------------|-----------|---------|
-| entry-detection subagent | `entry-detection` | `implementation` | `sonnet` |
-| start-development | `start-development` | `implementation` | `sonnet` |
-| review-pr | `review-pr` | `review` | `opus` |
-| address-pr-comments (fix loop) | `address-pr-comments` | `implementation` | `sonnet` |
-| test-pr | `test-pr` | `review` | `opus` |
-| decision-read subagent | `decision-read` | `implementation` | `sonnet` |
+**Subagent type + model per dispatch.** Resolve the model with the resolution order
+`models.stages.<stage-key>` → `models.<task-type>` → built-in default, then pass it as the
+`model` parameter on the Agent call (it overrides the worker's frontmatter default):
 
-Pass the resolved model as the `model` parameter on every dispatch.
+| Stage / dispatch | `subagent_type` | `stages` key | Task type | Default model |
+|-----------------|-----------------|--------------|-----------|---------------|
+| entry-detection | `dev-workflow-pr-state-reader` | `entry-detection` | `implementation` | `sonnet` |
+| write-spec (autonomous path only) | `dev-workflow-spec-writer` | `write-spec` | `implementation` | `sonnet` |
+| start-development | `dev-workflow-developer` | `start-development` | `implementation` | `sonnet` |
+| review-pr | `dev-workflow-reviewer` | `review-pr` | `review` | `opus` |
+| address-pr-comments (fix loop) | `dev-workflow-fixer` | `address-pr-comments` | `implementation` | `sonnet` |
+| test-pr | `dev-workflow-tester` | `test-pr` | `review` | `opus` |
+| decision-read | `dev-workflow-pr-state-reader` | `decision-read` | `implementation` | `sonnet` |
 
 **Output mode (per `standards.md` → "Output Mode Detection").** Determine the mode at startup. The orchestrator is **interactive by nature** when it must run create-story or write-spec, because those stages require user input (the spec-approval gate especially). If the skill is running non-interactively (no way to ask the user) AND the detected entry stage is create-story or write-spec, STOP and surface that the pipeline needs an interactive session to define/approve the spec. When resuming at start-development or later, no further interaction is required and the run may complete autonomously, emitting the flat key/value summary at Termination.
 
@@ -113,8 +121,10 @@ How to gather each signal:
 
 ### Entry detection subagent
 
-Gather the signals (story state, linked PRs, review decision, test labels) via a
-dispatched subagent (model: resolved from `models.stages.entry-detection` → `models.implementation` → default `sonnet`) whose prompt is:
+Gather the signals (story state, linked PRs, review decision, test labels) by
+**dispatching the Agent tool** with `subagent_type: dev-workflow-pr-state-reader`
+(model: resolved from `models.stages.entry-detection` → `models.implementation` → default
+`sonnet`). Do not run this read inline. The dispatch prompt is:
 
 > Fetch story {story-id} via the Shortcut MCP tool. Find any linked PRs via the
 > PM adapter's "Finding PRs linked to a story" instructions (fall back to
@@ -156,7 +166,9 @@ Drive the interview to completion in the main agent so it can ask the user quest
 
 write-spec already writes one spec per repo named in the story (satisfying the "once per repo" requirement) and has its own User Approval Gate. Run it in the main agent so that gate is interactive.
 
-**Mandatory confirmation gate:** Do NOT advance to start-development until the user has explicitly approved the spec(s) through write-spec's approval gate. If the user requests changes, let write-spec revise and re-present until approved. Only on explicit approval do you proceed.
+**Autonomous path (e.g. an epic task):** when running autonomously there is no human to satisfy the approval gate, so do **not** run write-spec in this orchestrator's context. Instead **dispatch the Agent tool** with `subagent_type: dev-workflow-spec-writer` (model: resolved from `models.stages.write-spec` → `models.implementation` → default `sonnet`), passing the story/task ID and any PM-adapter override. The worker produces the spec(s) and proceeds — there is no interactive gate to honor in this mode.
+
+**Mandatory confirmation gate (interactive path only):** Do NOT advance to start-development until the user has explicitly approved the spec(s) through write-spec's approval gate. If the user requests changes, let write-spec revise and re-present until approved. Only on explicit approval do you proceed.
 
 **State ownership:** write-spec owns the "Ready for Dev" transition and the `claude-written` label. The orchestrator does not duplicate them.
 
@@ -164,9 +176,9 @@ write-spec already writes one spec per repo named in the story (satisfying the "
 
 ## Stage — start-development (subagent)
 
-Dispatch a subagent (model: resolved from `models.stages.start-development` → `models.implementation` → default `sonnet`) whose prompt instructs it to:
+**Dispatch the Agent tool** with `subagent_type: dev-workflow-developer` (model: resolved from `models.stages.start-development` → `models.implementation` → default `sonnet`). The worker's body already invokes `dev-workflow:start-development` autonomously; your dispatch prompt supplies only the variable inputs:
 
-> Invoke Skill: `dev-workflow:start-development` with the story ID, running autonomously.
+> Story/task ID: `{story-id}`. Run autonomously. [For an epic task, also pass the PM-adapter override, branch name, and the "do NOT use git worktrees" override.]
 
 The subagent branches, implements with TDD, and opens the PR (one PR per repo for a multi-repo story). It returns its autonomous-mode key/value result.
 
@@ -182,11 +194,11 @@ Then proceed to review-pr for each resulting PR.
 
 For each PR produced by start-development:
 
-Dispatch a subagent (model: resolved from `models.stages.review-pr` → `models.review` → default `opus`) whose prompt instructs it to:
+**Dispatch the Agent tool** with `subagent_type: dev-workflow-reviewer` (model: resolved from `models.stages.review-pr` → `models.review` → default `opus`). The worker's body already invokes `dev-workflow:review-pr` autonomously and already carries the fresh-dev-build-CI mandate; your dispatch prompt supplies only:
 
-> Invoke Skill: `dev-workflow:review-pr` with the PR number, running autonomously.
+> PR number: `{PR_NUMBER}`. Run autonomously.
 >
-> MANDATORY: Even though you are running autonomously, you MUST trigger the **dev build CI** fresh on the PR's current HEAD and wait for it to reach a terminal state before reviewing code. Do not skip it because a prior run exists, because it is slow, or because you are unattended. An approval returned without a fresh dev build CI run on current HEAD is invalid — the orchestrator will treat it as a failed review.
+> (Reminder, also enforced by the worker: you MUST trigger the **dev build CI** fresh on the PR's current HEAD and wait for it to reach a terminal state before reviewing. An approval without a fresh dev build CI run on current HEAD is invalid — the orchestrator treats it as a failed review.)
 
 After it returns, read the PR's latest **review** decision authoritatively from GitHub (see below). Use that — not the subagent's self-report — to decide the next step.
 
@@ -196,11 +208,11 @@ After it returns, read the PR's latest **review** decision authoritatively from 
 
 While the latest review decision for the PR is **changes requested**:
 
-1. Dispatch a subagent (model: resolved from `models.stages.address-pr-comments` → `models.implementation` → default `sonnet`) whose prompt instructs it to **first** run `gh pr checkout {PR_NUMBER}` to land on the PR's branch, then:
-   > Invoke Skill: `dev-workflow:address-pr-comments` for PR `{PR_NUMBER}`.
+1. **Dispatch the Agent tool** with `subagent_type: dev-workflow-fixer` (model: resolved from `models.stages.address-pr-comments` → `models.implementation` → default `sonnet`). The worker's body already checks out the PR branch (`gh pr checkout {PR_NUMBER}`) and invokes `dev-workflow:address-pr-comments`; your dispatch prompt supplies only:
+   > PR number: `{PR_NUMBER}`.
 
    It implements the requested changes on the **same branch and PR** and replies to the review.
-2. Re-dispatch the review-pr subagent (model: resolved from `models.stages.review-pr` → `models.review` → default `opus`) for the same PR.
+2. Re-dispatch the reviewer via the Agent tool (`subagent_type: dev-workflow-reviewer`, model: resolved from `models.stages.review-pr` → `models.review` → default `opus`) for the same PR.
 3. Re-read the authoritative review decision (the newest review submitted since this re-dispatch).
 
 Repeat until the review decision is **approved**, subject to the Loop Safety Guard below. Then proceed to test-pr.
@@ -211,11 +223,11 @@ Repeat until the review decision is **approved**, subject to the Loop Safety Gua
 
 Once the PR is review-approved:
 
-Dispatch a subagent (model: resolved from `models.stages.test-pr` → `models.review` → default `opus`) whose prompt instructs it to:
+**Dispatch the Agent tool** with `subagent_type: dev-workflow-tester` (model: resolved from `models.stages.test-pr` → `models.review` → default `opus`). The worker's body already invokes `dev-workflow:test-pr` autonomously and already carries the fresh-dev-deploy mandate; your dispatch prompt supplies only:
 
-> Invoke Skill: `dev-workflow:test-pr` with the PR number, running autonomously.
+> PR number: `{PR_NUMBER}`. Run autonomously.
 >
-> MANDATORY: Even though you are running autonomously, you MUST run the **dev deploy CI** to deploy the branch fresh and wait for it to succeed before executing any test scenario. Do not skip it because the environment "looks deployed," because it is slow, or because you are unattended. A test result returned without a fresh dev deploy is invalid — the orchestrator will treat it as a failed test.
+> (Reminder, also enforced by the worker: you MUST run the **dev deploy CI** to deploy the branch fresh and wait for it to succeed before executing any test scenario. A test result without a fresh dev deploy is invalid — the orchestrator treats it as a failed test.)
 
 After it returns, read the PR's latest **test** decision authoritatively from GitHub.
 
@@ -227,8 +239,8 @@ After it returns, read the PR's latest **test** decision authoritatively from Gi
 
 While testing **requests changes**:
 
-1. Dispatch the address-pr-comments subagent (model: resolved from `models.stages.address-pr-comments` → `models.implementation` → default `sonnet`) for the same PR — its prompt must first run `gh pr checkout {PR_NUMBER}`, then invoke `dev-workflow:address-pr-comments` for PR `{PR_NUMBER}`.
-2. Re-dispatch the test-pr subagent (model: resolved from `models.stages.test-pr` → `models.review` → default `opus`) for the same PR.
+1. **Dispatch the Agent tool** with `subagent_type: dev-workflow-fixer` (model: resolved from `models.stages.address-pr-comments` → `models.implementation` → default `sonnet`) for the same PR — the worker checks out the branch and invokes `dev-workflow:address-pr-comments`; pass only the PR number `{PR_NUMBER}`.
+2. Re-dispatch the tester via the Agent tool (`subagent_type: dev-workflow-tester`, model: resolved from `models.stages.test-pr` → `models.review` → default `opus`) for the same PR.
 3. Re-read the authoritative test decision (the newest review submitted since this re-dispatch).
 
 Repeat until testing **passes**, subject to the Loop Safety Guard below.
@@ -249,7 +261,7 @@ Take the **most recent** review (highest `submitted_at`) and read its `state`:
 - `CHANGES_REQUESTED` → treat as **changes requested**.
 - `COMMENTED` / `PENDING` → not a decision; the stage did not conclude — surface this to the user rather than looping.
 
-**Dispatch this read as a subagent** (model: resolved from `models.stages.decision-read` → `models.implementation` → default `sonnet`) returning one line:
+**Dispatch this read via the Agent tool** with `subagent_type: dev-workflow-pr-state-reader` (model: resolved from `models.stages.decision-read` → `models.implementation` → default `sonnet`), returning one line:
 
 > Run: `gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/reviews`
 > Return **one line**: `decision=<APPROVED|CHANGES_REQUESTED|COMMENTED> submitted_at=<ISO>`
@@ -349,7 +361,7 @@ The orchestrator then runs the review → test cycle (including the loops) **for
 
 - The pipeline advanced through every required stage in order, entering at the correct stage on resume.
 - write-spec's user-approval gate was honored before development began.
-- Each non-interactive stage ran as a dispatched subagent on the model named above; create-story and write-spec ran interactively in the main agent.
+- Each non-interactive stage ran as an **Agent-tool dispatch** to its dedicated `subagent_type` (a fresh, isolated context per stage) on the resolved model — never via an inline `Skill` call. In the interactive path, create-story and write-spec ran in the main agent for their gates; in the autonomous path, write-spec ran as the `dev-workflow-spec-writer` worker.
 - The review loop and test loop each ran until approval/passing or until the Loop Safety Guard stopped them.
 - Testing passed (review approved + `tested-in-dev` label) and the PR is left open (not merged).
 - A clear end-of-run summary was produced.

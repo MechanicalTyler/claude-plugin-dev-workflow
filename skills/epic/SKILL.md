@@ -11,8 +11,15 @@ merge to a human. The epic never merges.
 
 The orchestrator inherits the main session model — it must stay an orchestrator (see the mandate
 below). Every unit of real work (brainstorming, repo discovery, spec writing, development, review,
-testing, fixing) is dispatched to a **subagent**, whose model is resolved from config per
-`skills/shared/standards.md` → "Subagent Model Selection".
+testing, fixing) is dispatched to a **subagent** via the **Agent tool** (never an inline `Skill`
+call — see `skills/shared/standards.md` → "Subagent Dispatch"), whose model is resolved from config
+per `skills/shared/standards.md` → "Subagent Model Selection".
+
+Per-task isolation relies on subagent **nesting** (`skills/shared/standards.md` → "Subagent
+Nesting"): the epic dispatches each task as a `dev-workflow-orchestrator` worker, which on Claude
+Code **v2.1.172+** dispatches full-cycle's stages as further nested subagents (fresh context per
+stage, within the fixed depth-5 cap). On older builds a task's stages run inline within that task's
+worker — still isolated per task, just not per stage.
 
 ## Orchestration-Only Mandate
 
@@ -86,14 +93,15 @@ cross-task scheduler.
 
 Goal: understand the initiative well enough to propose a complete, correctly-ordered task breakdown.
 
-1. **Brainstorm the initiative.** Dispatch a subagent (task type `reasoning`) instructed to invoke
-   `superpowers:brainstorming` against the feature summary and return the clarified intent,
-   requirements, edge cases, and risks. (Or, in interactive mode, run brainstorming in the main
-   agent so it can ask the user — brainstorming is a discovery activity, not implementation work, so
-   this does not violate the orchestration mandate.)
+1. **Brainstorm the initiative.** Dispatch the Agent tool (`subagent_type: general-purpose`, task
+   type `reasoning`) instructing the worker to invoke `superpowers:brainstorming` against the feature
+   summary and return the clarified intent, requirements, edge cases, and risks. (Or, in interactive
+   mode, run brainstorming in the main agent so it can ask the user — brainstorming is a discovery
+   activity, not implementation work, so this does not violate the orchestration mandate.)
 2. **Investigate the target repos.** Per `skills/shared/repo-discovery.md`, discover the repos in the
-   workspace and their purposes. Dispatch repo-investigation to a subagent (task type `reasoning`)
-   when the codebase reading is substantial, so raw file output stays out of the orchestrator context.
+   workspace and their purposes. Dispatch repo-investigation via the Agent tool
+   (`subagent_type: general-purpose`, task type `reasoning`) when the codebase reading is
+   substantial, so raw file output stays out of the orchestrator context.
 3. **Propose a decomposition** into small tasks. For each proposed task, mirror `create-story`'s
    field structure: `title`, `description`, `acceptanceCriteria`, `testingInstructions`, `repo`
    (exactly one per task), `story_type`, and `depends_on` (task IDs). A dependency exists when one
@@ -169,9 +177,20 @@ The scheduler decides what runs next. It reads `tasklist.md` as the source of tr
 
 ## Phase 7: Per-Task Drive
 
-For each scheduled task, dispatch **one** subagent that runs `full-cycle` for that task in
-**autonomous mode**, pinned to the `tasklist` adapter. Resolve the subagent model per
-`standards.md`. The dispatch prompt must contain, explicitly:
+For each scheduled task, **dispatch the Agent tool** with
+`subagent_type: dev-workflow-orchestrator` — **one** per task — to run `full-cycle` for
+that task in **autonomous mode**, pinned to the `tasklist` adapter. Resolve the subagent
+model per `standards.md` and pass it as the `model` parameter (the worker inherits
+otherwise). Do **not** invoke the `Skill` tool yourself for full-cycle — that would run the
+whole task in *this* orchestrator's context, defeating per-task isolation.
+
+The `dev-workflow-orchestrator` worker retains the `Agent` tool, so on Claude Code
+v2.1.172+ it dispatches each of full-cycle's stages as its own nested subagent (depth-3,
+under the depth-5 cap) — every stage gets a fresh context even under the epic. On older
+builds those stages run inline within the task's worker context (still isolated per task).
+Dispatch the concurrent tasks of a round in a **single message with multiple Agent calls**.
+
+The dispatch prompt must contain, explicitly:
 
 > Invoke Skill: `dev-workflow:full-cycle` with task ID `{task_id}`, running autonomously.
 >
@@ -204,7 +223,8 @@ self-reported pass/fail — it re-confirms PR state authoritatively from GitHub 
 When a task's `full-cycle` run reports review-approved **and** test-approved:
 
 1. Re-read the PR's authoritative review and test decisions from GitHub (dispatch the decision-read
-   as a subagent so raw JSON stays out of the orchestrator). Both must be `APPROVED`.
+   via the Agent tool with `subagent_type: dev-workflow-pr-state-reader` so raw JSON stays out of the
+   orchestrator). Both must be `APPROVED`.
 2. **Do not merge.** The epic never merges. Via the `tasklist` adapter's **Update story**, set the
    task `Status` to `awaiting-merge` (which also updates its Mermaid node), and confirm the
    `PR` field records the open PR URL so it can be tracked and reported.
