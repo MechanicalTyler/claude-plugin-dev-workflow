@@ -129,17 +129,28 @@ Extract any stated deviations or scope adjustments. Carry these forward as **Ack
 >   - the dev deploy CI is slow and you are under time pressure,
 >   - you are running unattended / autonomously / inside an orchestrator.
 > - **No test scenario may execute until the dev deploy CI completes successfully.** If the deploy fails, stop and report the failure in the test report — do not test against a stale or partial environment.
+> - **Only a dev deploy CI run counts.** The gate is satisfied **only** by a dev deploy CI run that completes with conclusion `success` on the PR branch's current HEAD. A local/Makefile/script/manual deploy NEVER satisfies this gate.
+> - **Hard fail, never skip-and-proceed.** For a non-exempt repo, if no dev deploy CI can be run, the deploy fails, the CI run concludes non-`success`, or only a local deploy path is available, the test verdict is **REQUEST_CHANGES** and the PR gets the `tests-failing` label (see Phase 7). Testing must never proceed to an APPROVE without a successful fresh dev deploy CI run.
 >
 > The dev deploy CI is the `deploy_command` deployment described below; this gate makes running it fresh and waiting for success non-negotiable. Run it as the first action of Phase 3.
+
+#### Dev Deploy CI Exemption (opt-in, explicit, per repo)
+
+Some repos legitimately have no dev deploy CI (e.g. documentation-only or plugin repos). The gate is skipped **only** when the current repo is explicitly listed in the dev-deploy-CI exemption.
+
+- Read the exemption list from `~/.claude/dev-workflow/config.json` → `deploy_gate_exempt_repos` (an array of repo names). Detect the current repo name with `git rev-parse --show-toplevel | xargs basename`. The gate is skipped for the current repo **only if its name appears in this array**.
+- **Default is gated.** A repo absent from `deploy_gate_exempt_repos` is gated. The `deploy_command` `fallback` entry is NOT an exemption — falling back to the fallback deploy instruction still requires a successful dev deploy CI run.
+- **Absence of a deploy CI is not an exemption.** For a non-exempt repo with no runnable dev deploy CI, the verdict is **REQUEST_CHANGES + `tests-failing`**, never a skip.
+- **Announce every skip.** When the gate is skipped by exemption, the test report MUST state that functional dev testing was skipped by explicit exemption (naming the repo and `deploy_gate_exempt_repos`) and describe how the change was otherwise validated. Silent skipping is forbidden.
 
 Read `~/.claude/dev-workflow/config.json` for `deploy_command`.
 
 `deploy_command` is a natural language instruction describing how to deploy the branch to the test/dev environment. Interpret it and take the appropriate action.
 
-**If `deploy_command` is not configured:**
-- Skip automated deployment
-- Test against the currently running environment
-- Note in test report that no deployment was performed
+**If `deploy_command` is not configured (or yields no runnable dev deploy CI) for a non-exempt repo:**
+- Do **not** skip the deploy and do **not** test against the currently running environment — that loophole is removed.
+- There is no successful fresh dev deploy CI run, so the dev deploy gate cannot be satisfied. **Submit a formal REQUEST_CHANGES review**, apply the `tests-failing` label (Phase 7), and stop. Never proceed to an APPROVE.
+- The only case where a missing deploy is acceptable is a repo explicitly listed in `deploy_gate_exempt_repos` — in which case follow the exemption path above (skip the gate and announce it in the report).
 
 **If `deploy_command` is configured**, interpret the instruction:
 
@@ -180,9 +191,12 @@ Instructions like "Run the dev CI in Github Actions", "Trigger the deploy-dev wo
 
 ### Other patterns
 
-- If the instruction describes a shell command (e.g., starts with `kubectl`, `docker`, `helm`, a script path, etc.), execute it directly and wait for it to exit successfully.
-- If the instruction is ambiguous, use best judgment based on the available tools in the repository (check for Makefiles, scripts, CI config files).
-- If you cannot determine how to fulfill the instruction, stop and ask the user.
+> **A local deploy does NOT satisfy the dev deploy CI gate.** Only a dev deploy **CI run** that completes with conclusion `success` on the PR branch's current HEAD satisfies the gate. A Makefile target, a local script, a `kubectl`/`docker`/`helm` command run from this machine, or any manual/local deployment is never sufficient on its own. If only a local path is available for a non-exempt repo, treat it as a deploy-gate **failure**: submit REQUEST_CHANGES, apply the `tests-failing` label, and do not APPROVE.
+
+- If the instruction maps to a dev deploy **CI** run (a workflow/pipeline), run it per the GitHub Actions steps above and require conclusion `success`.
+- If the instruction describes only a local shell command (e.g., starts with `kubectl`, `docker`, `helm`, a script path, a Makefile target) and there is **no** corresponding dev deploy CI for a non-exempt repo, the dev deploy gate cannot be satisfied — submit REQUEST_CHANGES + `tests-failing` and stop. Do not let the local command stand in for the gate.
+- If the instruction is ambiguous, prefer the dev deploy CI workflow (check CI config files first); a Makefile/script is not an acceptable substitute for the gate.
+- If you cannot determine how to run the dev deploy CI for a non-exempt repo, that is a gate failure — submit REQUEST_CHANGES + `tests-failing`. (For an exempt repo, follow the exemption path.)
 
 ---
 
@@ -286,6 +300,8 @@ If Phase 5 produced **3 or more independent test failures** across different sub
 [APPROVE / REQUEST CHANGES with reasoning]
 ```
 
+**A successful fresh dev deploy CI run is a necessary precondition for an APPROVE recommendation.** The recommendation may be APPROVE only if the dev deploy CI reached conclusion `success` on the PR branch's current HEAD (or the repo is dev-deploy-CI-exempt and the report says so) **and** all test scenarios passed. A deploy failure, a missing/unrunnable deploy CI on a non-exempt repo, a non-`success` deploy CI conclusion, or a local-only deploy yields **REQUEST CHANGES** regardless of any local validation.
+
 ---
 
 ## Phase 7: Submit Review
@@ -308,8 +324,10 @@ gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/reviews -f event="REQUEST_CHANGES"
 ### Submit
 
 Submit formal GitHub review using the actual PR number:
-- **APPROVE** (`gh pr review {PR_NUMBER} --approve`) if all tests pass
-- **REQUEST_CHANGES** (`gh pr review {PR_NUMBER} --request-changes`) if any test fails
+- **APPROVE** (`gh pr review {PR_NUMBER} --approve`) only if a fresh dev deploy CI run concluded `success` on current HEAD (or the repo is dev-deploy-CI-exempt and the report says so) **and** all tests pass
+- **REQUEST_CHANGES** (`gh pr review {PR_NUMBER} --request-changes`) if the dev deploy gate was not satisfied on a non-exempt repo (deploy failed, no runnable deploy CI, non-`success` conclusion, or local-only deploy) **or** any test fails
+
+A successful dev deploy CI run is a precondition for both APPROVE and the `tested-in-dev` label below. Never APPROVE + `tested-in-dev` without it.
 
 Include full test report in the review body.
 

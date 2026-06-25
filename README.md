@@ -46,6 +46,8 @@ Create `~/.claude/dev-workflow/config.json`:
     }
   },
   "deploy_command": "Run the dev CI workflow in GitHub Actions",
+  "ci_gate_exempt_repos": [],
+  "deploy_gate_exempt_repos": [],
   "models": {
     "implementation": "sonnet",
     "reasoning": "opus",
@@ -81,6 +83,25 @@ The `models` section is optional. When absent, all dispatches use the built-in d
 | `models.stages.decision-read` | `sonnet` | full-cycle's authoritative review/test decision-read subagent |
 
 **Resolution order** for any dispatch: `models.stages.<stage-key>` → `models.<task-type>` → built-in default. Stage-level keys take priority over task-type keys. Users who never add the `models` section see no change in behavior.
+
+### CI / Deploy Gate Exemptions
+
+Two optional arrays let specific repos opt out of the otherwise-mandatory CI gates. Both default to gated.
+
+| Key | Governs | Effect when a repo is listed |
+|-----|---------|------------------------------|
+| `ci_gate_exempt_repos` | `review-pr`'s dev build CI gate | The review may APPROVE without a passing dev build CI run. The review body states the gate was skipped by exemption. |
+| `deploy_gate_exempt_repos` | `test-pr`'s dev deploy CI gate | The test may APPROVE without a successful dev deploy CI run. The test report states functional dev testing was skipped by exemption. |
+
+Each is an array of repository names (matching `git rev-parse --show-toplevel | xargs basename`). The two gates are independent — a repo may be exempt from one and not the other.
+
+**Invariant — absence = gated, fallback ≠ exempt:**
+
+- A repo that is **not** listed in the relevant array is **gated**. Exemption requires explicit listing.
+- The `review_ci_command` / `deploy_command` `fallback` entry is **not** an exemption — falling back to the fallback instruction still requires the gate to run and pass.
+- Absence of a CI/deploy workflow on a non-exempt repo is **not** auto-exempt — it is a `REQUEST_CHANGES` (review) or `REQUEST_CHANGES` + `tests-failing` (test).
+
+A non-passing CI/deploy result on a non-exempt repo always yields `REQUEST_CHANGES`, never `APPROVE`. A local/Makefile/script deploy never satisfies the dev deploy gate — only a successful dev deploy CI run does.
 
 ## Adapters
 

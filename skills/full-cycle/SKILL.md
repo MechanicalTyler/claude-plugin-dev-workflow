@@ -198,7 +198,7 @@ For each PR produced by start-development:
 
 > PR number: `{PR_NUMBER}`. Run autonomously.
 >
-> (Reminder, also enforced by the worker: you MUST trigger the **dev build CI** fresh on the PR's current HEAD and wait for it to reach a terminal state before reviewing. An approval without a fresh dev build CI run on current HEAD is invalid — the orchestrator treats it as a failed review.)
+> (Reminder, also enforced by the worker: you MUST trigger the **dev build CI** fresh on the PR's current HEAD and wait for it to reach a terminal state before reviewing. An approval without a fresh dev build CI run on current HEAD is invalid — the orchestrator treats it as a failed review. A non-passing CI result (failed/cancelled/timed-out) must yield REQUEST_CHANGES, never APPROVE. The sole exception is a repo explicitly listed in `ci_gate_exempt_repos`: there a CI-free APPROVE is **valid** and must NOT be treated as a failed stage or looped — the review body will say the gate was skipped by exemption.)
 
 After it returns, read the PR's latest **review** decision authoritatively from GitHub (see below). Use that — not the subagent's self-report — to decide the next step.
 
@@ -227,7 +227,7 @@ Once the PR is review-approved:
 
 > PR number: `{PR_NUMBER}`. Run autonomously.
 >
-> (Reminder, also enforced by the worker: you MUST run the **dev deploy CI** to deploy the branch fresh and wait for it to succeed before executing any test scenario. A test result without a fresh dev deploy is invalid — the orchestrator treats it as a failed test.)
+> (Reminder, also enforced by the worker: you MUST run the **dev deploy CI** to deploy the branch fresh and wait for it to succeed before executing any test scenario. A test result without a fresh dev deploy is invalid — the orchestrator treats it as a failed test. A local/Makefile/script deploy never counts; without a successful dev deploy CI run the verdict is REQUEST_CHANGES + `tests-failing`, never APPROVE. The sole exception is a repo explicitly listed in `deploy_gate_exempt_repos`: there a deploy-CI-free APPROVE is **valid** and must NOT be treated as a failed stage or looped — the test report will say functional dev testing was skipped by exemption.)
 
 After it returns, read the PR's latest **test** decision authoritatively from GitHub.
 
