@@ -239,6 +239,16 @@ This standard governs tests written in target repositories during development �
 
 ---
 
+## Code Comments
+
+Comments are short and succinct, the way a working developer writes them. Comment the end result — what the code does — not the reasoning for how you arrived at it.
+
+- **No reasoning comments** — Do not narrate your thought process, alternatives you rejected, or why you chose an approach. The code is the deliverable; the path you took to it is not.
+- **Succinct** — A few words on intent or a non-obvious effect. If the code is self-explanatory, add no comment.
+- **Exception — tests** — The mandatory "why" comment on every test (see Testing Standards above) is **required** and stands apart from this rule. A test's reason for existing is the one place reasoning belongs in code.
+
+---
+
 ## Design Decisions
 
 A target repository may record architectural and design decisions as markdown files under `.claude/dev-workflow/design-decisions/` (any depth — `.claude/dev-workflow/design-decisions/**/*.md`). These are durable, agreed-upon decisions. Treat them as authoritative constraints.
