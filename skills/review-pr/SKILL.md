@@ -129,6 +129,16 @@ Also check PR title if not found in body.
 >   - the diff "looks safe" or the code "obviously builds."
 > - **Code review must not begin until the dev build CI reaches a terminal state** (success, failure, or cancelled). If it fails, stop and report per the failure handling below — do not proceed to the multi-perspective review.
 > - **An approval produced without a fresh dev build CI run on current HEAD is invalid.** If you reach Phase 6 and the gate was not satisfied, return to this gate and run it.
+> - **Hard fail, never silent fall-through.** If the dev build CI does not reach a `success` conclusion on current HEAD — it failed, was cancelled, or timed out without confirming success — the review verdict is a formal **REQUEST_CHANGES** (see the failure handling below). A non-passing CI state may NEVER result in APPROVE, and may never end in only a bare comment or STOP with no recorded review decision.
+
+#### Dev Build CI Exemption (opt-in, explicit, per repo)
+
+Some repos legitimately have no dev build CI (e.g. documentation-only or plugin repos). The gate is skipped **only** when the current repo is explicitly listed in the dev-build-CI exemption.
+
+- Read the exemption list from `~/.claude/dev-workflow/config.json` → `ci_gate_exempt_repos` (an array of repo names). The gate is skipped for the current repo **only if its name appears in this array**.
+- **Default is gated.** A repo that is absent from `ci_gate_exempt_repos` is gated. The `review_ci_command` `fallback` entry is NOT an exemption — falling back to the fallback CI instruction still requires the gate to run and pass.
+- **Absence of a CI workflow is not an exemption.** If a non-exempt repo has no dev build CI workflow at all, that is a **REQUEST_CHANGES**, not a skip. Never treat "no CI found" as auto-exempt.
+- **Announce every skip.** When the gate is skipped by exemption, the review body MUST state it explicitly, e.g. "Dev build CI gate skipped: repo `<name>` is explicitly exempt in `ci_gate_exempt_repos`." Silent skipping is forbidden.
 
 The dev build CI is the build workflow described under "Load CI Configuration" and "Required Workflows" below; this gate makes triggering and waiting on it non-negotiable. Run it as the first action of Phase 3.
 
@@ -171,8 +181,8 @@ gh run list --branch "branch-name-from-output" --json conclusion,status,name,cre
 Trigger any missing or failed non-terraform workflows. Wait up to 15 minutes for completion.
 
 After waiting, check results:
-- If any non-terraform workflow is still `in_progress` (conclusion is null): wait an additional 5 minutes and re-check once. If still running after the re-check, post a review comment naming each timed-out workflow and **STOP** — do not proceed until all non-terraform workflows reach a terminal state.
-- If any non-terraform workflow has failed: post a review comment that names each failed workflow and its conclusion (e.g., "Build workflow failed with conclusion: failure"), then **STOP** — do not proceed to Terraform Plan Validation or code review until all non-terraform checks pass.
+- If any non-terraform workflow is still `in_progress` (conclusion is null): wait an additional 5 minutes and re-check once. If still running after the re-check, the CI gate has not passed — **submit a formal REQUEST_CHANGES review** whose body names each timed-out workflow and states that CI did not reach a passing state on current HEAD, then **STOP** the multi-perspective review. Do not proceed until all non-terraform workflows reach a terminal `success` state. Never APPROVE on an unconfirmed (timed-out) CI result.
+- If any non-terraform workflow has failed: the CI gate has not passed — **submit a formal REQUEST_CHANGES review** whose body names each failed workflow and its conclusion (e.g., "Build workflow failed with conclusion: failure") and states that CI did not pass on current HEAD, then **STOP** the multi-perspective review. Do not proceed to Terraform Plan Validation or code review until all non-terraform checks pass. Never APPROVE on a failed CI result.
 
 #### Terraform Plan Validation
 
@@ -194,10 +204,10 @@ gh run list --branch "branch-name-from-earlier" --json conclusion,status,name,cr
 
 Check the results for any workflow whose name contains the word "terraform" (case-insensitive).
 
-- **CI terraform workflow is still `in_progress` (conclusion is null):** Re-run `gh run list` every 2 minutes until the run reaches a terminal conclusion (success, failure, or cancelled). Cap the wait at 30 minutes total. If the run has not completed after 30 minutes, post a review comment noting that the terraform CI run did not complete within the timeout and **STOP** — do not proceed until the terraform CI run reaches a terminal state.
+- **CI terraform workflow is still `in_progress` (conclusion is null):** Re-run `gh run list` every 2 minutes until the run reaches a terminal conclusion (success, failure, or cancelled). Cap the wait at 30 minutes total. If the run has not completed after 30 minutes, the CI gate has not passed — **submit a formal REQUEST_CHANGES review** noting that the terraform CI run did not complete within the timeout on current HEAD, then **STOP**. Do not proceed until the terraform CI run reaches a terminal `success` state. Never APPROVE on an unconfirmed terraform CI result.
 - **CI terraform run found and passed:** Verify the run's `createdAt` timestamp is more recent than `.commits[-1].committedDate` (obtained above). If it is, note the result and continue. If the passing run predates the most recent commit, treat it as "No CI terraform run found" and fall through to the manual plan fallback.
 
-- **CI terraform run found and failed:** Post a review comment noting the CI terraform plan failure and the workflow name. **STOP** — do not proceed with the code review until the CI check passes.
+- **CI terraform run found and failed:** The CI gate has not passed — **submit a formal REQUEST_CHANGES review** naming the failed terraform workflow and stating that CI did not pass on current HEAD, then **STOP**. Do not proceed with the code review until the CI check passes. Never APPROVE on a failed terraform CI result.
 
 - **No CI terraform run found (fallback):** Run `terraform plan` directly. Check for `tf/` first, then `terraform/`, then fall back to the directory of the changed `.tf` files. For example, if `tf/` exists:
 
@@ -447,9 +457,16 @@ To post inline comments as part of the review, use `gh api` to create a review w
 gh api repos/{owner}/{repo}/pulls/{PR_NUMBER}/reviews -f event="REQUEST_CHANGES" -f body="..." -f 'comments[][path]="file.ts"' -f 'comments[][position]=42' -f 'comments[][body]="..."'
 ```
 
+**Dev build CI is a necessary precondition for APPROVE — independent of the 1–10 score.** A review may be **APPROVE only if all** of the following hold:
+1. The dev build CI (and every required CI check) reached a `success` conclusion on the PR's current HEAD — **or** the repo is dev-build-CI-exempt (listed in `ci_gate_exempt_repos`), in which case the review body states the gate was skipped by exemption; **and**
+2. score ≥ 8; **and**
+3. no required changes exist.
+
+If the CI gate did not pass (failed, cancelled, or timed-out/unconfirmed) on a non-exempt repo, the verdict is **REQUEST_CHANGES** regardless of score — a high score never overrides a non-passing CI gate.
+
 Submit formal GitHub review with decision:
-- **APPROVE** if score ≥ 8 and no required changes
-- **REQUEST_CHANGES** if required changes exist
+- **APPROVE** only if the CI gate passed (or the repo is dev-build-CI-exempt) **and** score ≥ 8 **and** no required changes
+- **REQUEST_CHANGES** if the CI gate did not pass on a non-exempt repo, or required changes exist
 - **COMMENT** if neutral/informational
 
 Use the actual PR number:
