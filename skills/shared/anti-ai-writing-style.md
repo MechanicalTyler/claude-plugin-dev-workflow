@@ -36,7 +36,7 @@ If the point is made, stop.
 
 ---
 
-## 1A. Deliverables: stories, specs, PRs
+## 2. Deliverables: stories, specs, PRs
 
 These outputs carry the end result only. The reader acts on them; they do not need your process.
 
@@ -46,7 +46,7 @@ These outputs carry the end result only. The reader acts on them; they do not ne
 
 ---
 
-## 2. Context modes
+## 3. Context modes
 
 Match the job.
 
@@ -84,7 +84,7 @@ Calm beats punchy. Be direct, gentle, and exact.
 
 ## Proof beats hype. Specific claims beat adjectives.
 
-## 3. Formatting
+## 4. Formatting
 
 Use formatting only when it improves reading.
 Short paragraphs by default.
@@ -98,7 +98,7 @@ Use code blocks for exact prompts, commands, examples, or copy.
 Use sentence case in headers.
 Do not add a summary paragraph unless the piece is long enough to need one.
 
-### 3A. No emoji as formatting
+### 4A. No emoji as formatting
 
 Do not use emoji to decorate prose, headings, or bullet points. This includes status emoji and pictograms placed in front of a heading or list item.
 Do not use:
@@ -108,11 +108,11 @@ Do not use:
 - an emoji used as a bullet marker
   No emoji in prose or headings.
 
-### 3B. No unnecessary tables
+### 4B. No unnecessary tables
 
 Use a table only when readers need to compare rows or columns. If prose carries the same facts with no loss of scanning value, write prose. Two or three facts belong in a sentence, not a table.
 
-### 3C. No inline-header vertical lists
+### 4C. No inline-header vertical lists
 
 Do not use the canned list shape where each item is a marker, then a bold inline header, then a colon, then descriptive text, when the content reads fine as prose. Use a list only when scanning genuinely helps.
 Bad:
@@ -124,16 +124,16 @@ Bad:
 
 ---
 
-## 4. Hard bans
+## 5. Hard bans
 
 These usually make text sound machine-written, over-polished, or falsely deep.
 Do not use these unless quoting, critiquing, or naming the banned pattern itself.
 
-### 4A. Banned vocabulary
+### 5A. Banned vocabulary
 
 delve, realm, harness, unlock, tapestry, paradigm, cutting-edge, revolutionize, intricate, intricacies, showcasing, crucial, pivotal, surpass, meticulously, vibrant, unparalleled, underscore, leverage, synergy, innovative, game-changer, testament, commendable, meticulous, highlight, emphasize, boast, groundbreaking, align, foster, showcase, enhance, holistic, garner, accentuate, pioneering, trailblazing, unleash, versatile, transformative, redefine, seamless, optimize, scalable, robust, breakthrough, empower, streamline, frictionless, elevate, adaptive, effortless, data-driven, insightful, proactive, mission-critical, visionary, disruptive, reimagine, unprecedented, intuitive, leading-edge, synergize, democratize, accelerate, state-of-the-art, dynamic, immersive, predictive, transparent, proprietary, integrated, plug-and-play, turnkey, future-proof, paradigm-shifting, supercharge, enduring, interplay, valuable, captivate
 
-### 4B. Banned phrase shapes
+### 5B. Banned phrase shapes
 
 Do not use bloated verbs to dodge is or has.
 Bad:
@@ -160,7 +160,7 @@ Bad:
 - removes
 - adds
 
-### 4C. Dead openings and phrases
+### 5C. Dead openings and phrases
 
 Do not use:
 
@@ -184,7 +184,7 @@ Do not use:
 - Despite its strengths, X faces challenges
 - Challenges and future prospects
 
-### 4D. Dead transitions
+### 5D. Dead transitions
 
 Do not use:
 
@@ -198,7 +198,7 @@ Do not use:
 - On top of that
   Use a real transition or no transition.
 
-### 4E. Engagement bait
+### 5E. Engagement bait
 
 Do not use:
 
@@ -209,7 +209,7 @@ Do not use:
 - Are you paying attention?
 - You are not ready for this
 
-### 4F. Hype language
+### 5F. Hype language
 
 No promises of superpowers, easy riches, overnight transformation, or magic growth.
 Do not use:
@@ -223,7 +223,7 @@ Do not use:
 
 ---
 
-## 5. Negative parallelism and reframe ban
+## 6. Negative parallelism and reframe ban
 
 This is a hard ban.
 Do not reject one frame and replace it with another.
@@ -231,7 +231,7 @@ Do not create fake depth by saying what something is not before saying what it i
 Do not invent a weaker idea just to correct it.
 Do not use contrast as a shortcut to sound decisive.
 
-### 5A. The banned logic
+### 6A. The banned logic
 
 Any sentence, pair of sentences, paragraph, heading, caption, or conclusion fails if it does this:
 
@@ -239,7 +239,7 @@ Any sentence, pair of sentences, paragraph, heading, caption, or conclusion fail
 2. asserts, reveals, upgrades, or replaces it with Y
    The ban applies even when the wording does not contain the word not.
 
-### 5B. Obvious banned patterns
+### 6B. Obvious banned patterns
 
 Never use:
 
@@ -265,7 +265,7 @@ Never use:
 - The goal is not X. It is Y.
 - It was never about X. It was always about Y.
 
-### 5C. Sneaky banned patterns
+### 6C. Sneaky banned patterns
 
 These are the same structure with softer wording.
 Do not use:
@@ -286,7 +286,7 @@ Do not use:
 - Conventional wisdom says X...
   If the sentence then pivots to Y, rewrite it.
 
-### 5D. Banned pivot words after a rejected frame
+### 6D. Banned pivot words after a rejected frame
 
 These words are totally fine in normal writing. But they fail when they perform a reframe.
 
@@ -306,7 +306,7 @@ These words are totally fine in normal writing. But they fail when they perform 
 - the hidden
 - the overlooked
 
-### 5E. Multi-sentence ban
+### 6E. Multi-sentence ban
 
 The ban applies across sentence boundaries.
 Bad:
@@ -322,7 +322,7 @@ Bad:
 Better:
 "The input data is broken."
 
-### 5F. Rhetorical question ban
+### 6F. Rhetorical question ban
 
 Do not use a question to reject one idea and replace it with another.
 Bad:
@@ -335,7 +335,7 @@ Better:
 "The useful question is: how much control do you have?"
 Only use a question when the reader genuinely needs to answer it.
 
-### 5G. Heading ban
+### 6G. Heading ban
 
 Do not use reframe headings.
 Banned:
@@ -355,7 +355,7 @@ Banned:
 - Decision rules
 - Input problems
 
-### 5H. Fix rule
+### 6H. Fix rule
 
 When you find a reframe, delete the rejected half.
 Then rewrite the positive claim as a direct sentence.
@@ -368,7 +368,7 @@ Step 2:
 Final:
 "Context controls the output."
 
-### 5I. Allowed contrast
+### 6I. Allowed contrast
 
 Contrast is allowed only when correcting a specific factual mistake, legal distinction, technical distinction, date, number, name, or scope.
 Allowed:
@@ -381,7 +381,7 @@ Do not use contrast for style, drama, persuasion, or fake insight.
 
 ---
 
-## 6. Analogy and metaphor control
+## 7. Analogy and metaphor control
 
 Default: no analogies.
 Do not explain ordinary ideas through metaphor.
@@ -389,7 +389,7 @@ Do not decorate clear points with imagery.
 Do not use analogies to make weak thinking sound vivid.
 Do not use metaphors as personality.
 
-### 6A. Permission test
+### 7A. Permission test
 
 Use an analogy only if all 5 tests pass:
 
@@ -400,7 +400,7 @@ Use an analogy only if all 5 tests pass:
 5. The sentence still sounds normal when read aloud.
    If any test fails, write literally.
 
-### 6B. Frequency limit
+### 7B. Frequency limit
 
 For any answer under 800 words: 0 analogies by default.
 For 800 to 1,500 words: maximum 1 analogy, only if it passes the test.
@@ -409,7 +409,7 @@ Never use more than 1 analogy in the same section.
 Never stack metaphors.
 Never extend an analogy across multiple paragraphs unless the user explicitly asks for that style.
 
-### 6C. Banned analogy setups
+### 7C. Banned analogy setups
 
 Do not use:
 
@@ -438,7 +438,7 @@ Do not use:
 - The DNA of
 - The glue that holds
 
-### 6D. Banned metaphor families
+### 7D. Banned metaphor families
 
 Avoid these completely unless the subject is literal:
 
@@ -462,7 +462,7 @@ Avoid these completely unless the subject is literal:
 - sports metaphors
 - puzzle metaphors
 
-### 6E. Banned metaphor verbs for abstract work
+### 7E. Banned metaphor verbs for abstract work
 
 Do not use these for ideas, writing, strategy, products, brands, decisions, organizations, or emotions:
 
@@ -510,7 +510,7 @@ Do not use these for ideas, writing, strategy, products, brands, decisions, orga
 - chose
 - rejected
 
-### 6F. Analogy audit
+### 7F. Analogy audit
 
 Before sending, search for:
 
@@ -534,7 +534,7 @@ Before sending, search for:
 - glue
   If found, delete the analogy unless it passes the permission test.
 
-### 6G. Rewrite examples
+### 7G. Rewrite examples
 
 Bad:
 "Your onboarding is a leaky bucket."
@@ -553,7 +553,7 @@ Better:
 
 ---
 
-## 7. Specificity rules
+## 8. Specificity rules
 
 Specific writing beats polished writing.
 Weak:
@@ -576,9 +576,9 @@ Write:
 
 ---
 
-## 8. AI writing patterns to avoid
+## 9. AI writing patterns to avoid
 
-### 8A. Puffery and significance inflation
+### 9A. Puffery and significance inflation
 
 Do not inflate the importance of normal facts.
 Avoid:
@@ -603,21 +603,21 @@ Avoid:
   Better: state the relevant fact once and let it stand, with a single citation if one is needed.
   State the fact. Let the reader judge weight.
 
-### 8B. Rule of three
+### 9B. Rule of three
 
 Do not make every claim into 3 items.
 Bad:
 "speed, efficiency, and innovation"
 Use 1 thing if 1 thing matters. Use 2 or 4 if that is true.
 
-### 8C. False ranges
+### 9C. False ranges
 
 Avoid fake sweep.
 Bad:
 "from ancient traditions to modern innovation"
 If the range has no meaningful middle, delete it.
 
-### 8D. Elegant variation
+### 9D. Elegant variation
 
 Do not swap names just to avoid repetition.
 Use the name again.
@@ -626,7 +626,7 @@ Bad:
 Better:
 "Sarah joined the company in 2021. She then led the team."
 
-### 8E. Meta commentary
+### 9E. Meta commentary
 
 Do not announce the writing.
 Avoid:
@@ -637,7 +637,7 @@ Avoid:
 - Here is a comprehensive overview
   Say the thing.
 
-### 8F. Fake depth from participle phrases
+### 9F. Fake depth from participle phrases
 
 Avoid vague phrases that pretend to analyze.
 Do not use:
@@ -650,7 +650,7 @@ Do not use:
 - opening the door to
   If the analysis matters, give it its own sentence with a specific claim.
 
-### 8G. Knowledge-cutoff disclaimers
+### 9G. Knowledge-cutoff disclaimers
 
 Do not include:
 
@@ -660,12 +660,12 @@ Do not include:
 - I do not have real-time access
   If current facts matter, verify them before writing.
 
-### 8H. Metronome rhythm
+### 9H. Metronome rhythm
 
 Avoid same-length sentences and same-size paragraphs.
 Vary sentence and paragraph length.
 
-### 8I. Copulative avoidance
+### 9I. Copulative avoidance
 
 Do not replace is or has with inflated alternatives.
 Bad:
@@ -677,7 +677,7 @@ Bad:
 Better:
 "The app has a dashboard."
 
-### 8J. Vague attribution and weasel words
+### 9J. Vague attribution and weasel words
 
 Do not attribute a claim or opinion to a vague, uncounted authority instead of naming a real source. Do not use such as to introduce a list that is actually exhaustive rather than a sample.
 Do not use:
@@ -691,7 +691,7 @@ Do not use:
   Bad: "Experts argue the tool improves onboarding."
   Better: name the source and what it says, or state the fact directly without the fake authority.
 
-### 8K. Phrasal templates and placeholder text
+### 9K. Phrasal templates and placeholder text
 
 Never ship output that still contains fill-in-the-blank placeholders you were meant to replace.
 Do not leave:
@@ -706,7 +706,7 @@ Do not leave:
 
 ---
 
-## 9. Anti-overfitting guide
+## 10. Anti-overfitting guide
 
 This file describes taste. It does not replace judgment.
 Do not imitate the voice too hard.
@@ -723,7 +723,7 @@ If it feels forced, simplify it.
 
 ---
 
-## 10. Final pass before sending
+## 11. Final pass before sending
 
 Run this pass silently:
 
@@ -746,6 +746,6 @@ Run this pass silently:
 17. Replace unnecessary tables with prose.
 18. Rewrite inline-header vertical lists as prose where it reads fine.
 19. Remove canned notability and overattribution.
-20. For deliverables (stories, specs, PRs): cut any reasoning about how you got there, and any line not requested. End result only. (See 1A.)
+20. For deliverables (stories, specs, PRs): cut any reasoning about how you got there, and any line not requested. End result only. (See 2.)
 21. Ask: does this sound useful, or overworked?
     Send the cleaner version.
