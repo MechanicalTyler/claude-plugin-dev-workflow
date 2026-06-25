@@ -746,5 +746,6 @@ Run this pass silently:
 17. Replace unnecessary tables with prose.
 18. Rewrite inline-header vertical lists as prose where it reads fine.
 19. Remove canned notability and overattribution.
-20. Ask: does this sound useful, or overworked?
+20. For deliverables (stories, specs, PRs): cut any reasoning about how you got there, and any line not requested. End result only. (See 1A.)
+21. Ask: does this sound useful, or overworked?
     Send the cleaner version.
