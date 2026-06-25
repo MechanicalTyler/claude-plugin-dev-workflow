@@ -36,6 +36,16 @@ If the point is made, stop.
 
 ---
 
+## 1A. Deliverables: stories, specs, PRs
+
+These outputs carry the end result only. The reader acts on them; they do not need your process.
+
+- No reasoning. State the requirement, the change, the result. Do not explain how you got there, what you considered, or why you ruled options out.
+- Say less. Deliver only what was requested, in as few lines as possible. No filler paragraphs, no scene-setting, no recap.
+- Actionable data over narrative. A list of concrete items beats a paragraph describing them.
+
+---
+
 ## 2. Context modes
 
 Match the job.
