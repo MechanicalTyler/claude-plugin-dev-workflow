@@ -34,8 +34,7 @@ worker — still isolated per task, just not per stage.
 - the end-of-run report.
 
 **The epic never merges a PR.** On dual approval it pauses the task at `awaiting-merge` and leaves
-the PR open for a human; it never runs a merge command (`gh … pr merge`, `gh-as-app.sh … pr merge`,
-or any equivalent). The only path to `done` is a human merge detected on a subsequent resume.
+the PR open for a human; it never runs a merge command (`gh … pr merge` or any equivalent). The only path to `done` is a human merge detected on a subsequent resume.
 
 It **never** writes feature code, specs, reviews, or tests itself, and **never** creates a task
 on its own initiative outside the consensus gate or a subagent's bug report. If you find yourself
@@ -239,8 +238,7 @@ When a task's `full-cycle` run reports review-approved **and** test-approved:
 
 The `awaiting-merge → done` transition happens **only** on a later resume, never inline during a run.
 When the epic is re-invoked against the slug, it reconciles each `awaiting-merge` task against GitHub
-(see Resumability): for each such task, read the PR's state with the `developer` persona
-(`gh-as-app.sh developer pr view {PR} …` under the Vandog wrapper standard, or `gh pr view` otherwise)
+(see Resumability): for each such task, read the PR's state (`gh pr view {PR} …`)
 — a **read**, never a merge.
 
 - **PR merged** (a human merged it) → set `Status` to `done` via the adapter; its dependents become
@@ -303,7 +301,7 @@ an extra key such as `awaiting-merge` listing those PR URLs.
 
 1. Read `tasklist.md`; treat every task `Status` as authoritative.
 2. **Reconcile every `awaiting-merge` task against GitHub first** (per Phase 8 → "Detecting a human
-   merge"). For each, read the PR state with the `developer` persona (a read, never a merge):
+   merge"). For each, read the PR state (a read, never a merge):
    - **merged** → set `Status` to `done`;
    - **closed without merging** → set `Status` to `blocked` with a recorded reason;
    - **still open** → leave it `awaiting-merge`.

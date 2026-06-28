@@ -256,8 +256,7 @@ Given `task_id`, return the task's PR:
    gh pr list --state all --head "[epic-slug]-[task-id]" --json number,url,state,reviewDecision
    ```
 
-   When run under the Vandog wrapper standard, use `gh-as-app.sh <persona> pr list …` instead of bare
-   `gh`. Match by the exact head branch — never by an `sc-` search term, because epic PRs have none.
+   Match by the exact head branch — never by an `sc-` search term, because epic PRs have none.
 
 ---
 
