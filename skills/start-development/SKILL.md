@@ -256,7 +256,7 @@ git branch --show-current
 Then check CI runs:
 
 ```bash
-gh-as-app.sh developer run list --branch <current-branch> --json conclusion,status,name,createdAt,workflowName --limit 25
+gh run list --branch <current-branch> --json conclusion,status,name,createdAt,workflowName --limit 25
 ```
 
 Look for any workflow whose name contains "terraform" (case-insensitive).
@@ -281,7 +281,7 @@ Look for any workflow whose name contains "terraform" (case-insensitive).
     1. Read the current PR body:
 
        ```bash
-       gh-as-app.sh developer pr view --json body -q .body
+       gh pr view --json body -q .body
        ```
 
     2. Write the combined body (existing content + the Terraform Plan section) to `.scratch/pr-body-updated.txt` using the Write tool.
